@@ -1,6 +1,6 @@
 ---
 name: generate-layered-collage
-description: Create storyboard stills and reusable transparent PNG assets for analog editorial collage projects. Use when a user wants a collage keyframe, layered image package, cut-paper storyboard, reusable subject/store/question-mark/product assets, blank text-label layers for later editing, or a final composite that can later be animated. Generate backgrounds and independent layers first instead of extracting them from a flattened image. Supports archival and clean editorial presets or a user-supplied visual reference, with configurable accent colors. Excludes motion scripts, animation prompts, and video generation.
+description: Create storyboard stills and reusable transparent PNG assets for analog editorial collage projects. Use when a user wants a collage keyframe, layered image package, cut-paper storyboard, reusable subject/store/question-mark/product assets, blank text-label layers for later editing, or a final composite that can later be animated. Generate backgrounds and independent layers first instead of extracting them from a flattened image. Supports a built-in archival collage style or a user-supplied visual reference, with configurable accent colors. Excludes motion scripts, animation prompts, and video generation.
 ---
 
 # Generate Layered Collage
@@ -18,8 +18,7 @@ Build collage artwork from reusable image layers. Treat the composite as the res
 
 Read only the references needed for the request:
 
-- For the built-in archival visual language, read `references/default-style.md`.
-- For a cleaner poster-like collage with strict hierarchy, limited decoration, and quiet paper surfaces, read `references/clean-editorial-style.md`.
+- For the built-in archival visual language and its clean material finish, read `references/default-style.md`.
 - For directory structure, manifest fields, reusable assets, and compositing rules, read `references/layer-workflow.md`.
 - For image-generation prompt construction, read `references/prompt-patterns.md`.
 
@@ -35,7 +34,7 @@ Collect or infer:
 - optional people, characters, products, logos, or other identity references supplied for this project;
 - `external_asset_policy`, only when such a reference is supplied: `exact-reuse`, `approved-extraction`, or `reference-led-regenerate`;
 - `style_mode`: `default` or `reference-led`;
-- `style_preset`: `archival-editorial`, `clean-editorial`, or a temporary reference-led profile;
+- `style_preset`: `archival-editorial` or a temporary reference-led profile;
 - `text_mode`: `blank-labels`, `rendered-text`, or `no-text`;
 - primary accent color and any permitted secondary accent;
 - desired background density: `quiet`, `balanced`, or `dense`;
@@ -52,8 +51,6 @@ For `reference-led` work, inspect one to three reference images before generatin
 ### 2. Split the content into frames
 
 Turn the message into a concise storyboard. Give each frame one primary visual claim. Avoid cramming every noun from the copy into the picture.
-
-When `style_preset` is `clean-editorial`, establish a composition budget before the layer inventory: one dominant subject, two to four directly relevant supporting elements, three to six functional guide marks at most, and roughly 25–40% negative space. Treat these as design targets rather than a reason to split one semantic object into arbitrary pieces. Do not distribute elements evenly or turn the frame into a specimen board or nine-grid.
 
 Before generating, prepare a layer inventory for every frame:
 
@@ -129,8 +126,6 @@ For each transparent asset:
 - leave no large transparent margins;
 - keep the asset at useful working resolution.
 
-For `clean-editorial`, keep the cutout language consistent across every asset: clear controlled irregular contours, an optional narrow off-white paper rim, flat paper faces, and one shared direction and softness for contact shadows. Do not use dirt, fibers, or heavy aging as a substitute for collage depth.
-
 For `blank-labels`, generate the complete visual treatment—torn paper, accent underline, tape, edge fibers, and shadow—but leave the intended text area genuinely empty. Do not insert placeholder words, fake glyphs, lorem ipsum, or faint guide text. Save each blank label as its own transparent PNG. Record intended text, safe box, alignment, and suggested treatment in `text-overlay.json`; keep these instructions outside the pixels.
 
 For `rendered-text`, prefer generating the paper shape separately and adding text deterministically in an editor or code-native step. If generated text is used, verify every character before approval.
@@ -170,10 +165,8 @@ Check:
 - shared files are truly reused instead of regenerated;
 - no unintended cropping after rotation;
 - final composite is assembled from the delivered background and PNGs;
-- `clean-editorial` frames preserve the planned negative space, one unmistakable focal subject, limited palette, and no more than the planned decorative marks;
-- decorative arrows, grids, circles, numbers, and paper strips explain hierarchy or direction instead of merely filling empty space;
-- paper shadows are light, close, and directionally consistent; broad paper faces and pure color blocks remain calm and even;
-- photographs are purposefully cropped cutouts or integrated paper objects, not unexplained full rectangles pasted into the composition.
+- broad paper faces, pure color blocks, faces, text-safe areas, and negative space remain calm and free of procedural texture artifacts;
+- paper shadows are light, close, and directionally consistent.
 
 When a single layer is wrong, replace that layer and recompose. Do not repeatedly edit the flattened composite.
 
@@ -194,7 +187,7 @@ State any deliberately baked-in background elements. Do not claim a PSD unless a
 
 ## Style Expansion
 
-Treat the built-in archival and clean editorial styles as separate presets, not the entire skill.
+Treat the built-in archival collage style as one preset, not the entire skill.
 
 For a new collage style:
 
