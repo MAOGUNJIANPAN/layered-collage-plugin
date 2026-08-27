@@ -2,17 +2,35 @@
 
 Use these as components, not as rigid full prompts. Replace every placeholder.
 
-## Surface Integrity Suffix
+## Artifact Prevention Suffix
 
-Append this to every background and asset prompt. It controls material quality only; it must not replace or simplify the selected composition and design language.
+Append this to every background and asset prompt. It prevents procedural artifacts without changing the selected composition or medium.
 
 ```text
-Clean professional scanned-paper finish. Express physical collage through controlled cut contours, narrow paper rims where useful, overlap, scale, and very light close contact shadows with one consistent direction. Keep broad paper faces, pure color fields, faces, text-safe areas, and negative space calm, flat, even, and nearly texture-free. Permit only faint low-frequency tonal variation on paper and subtle print character inside photographic cutouts.
-
-No dirt-based aging, stains, mold, oil, water damage, burn marks, corrosion, heavy creases, dense fibers, hair-like lines, repeated particles, texture clumps, worm-like patterns, fingerprints, waves, wood grain, moire, global noise, glossy vector finish, plastic, neon, 3D extrusion, curled paper, floating scraps, or dramatic shadows.
+Keep broad surfaces, faces, text-safe areas, and negative space free of accidental procedural microtexture. No repeated particles, texture clumps, worm-like patterns, fingerprints, waves, wood grain, hair-like lines, moire, crawling noise, or uniform global distress. Do not use texture to hide malformed anatomy, weak silhouettes, or unresolved structure.
 ```
 
-If the user explicitly requests a distressed or aged surface, permit only the named effect and keep it localized. The prohibitions on worm-like, fingerprint, wave, wood-grain, hair-like, moire, clustered, and repeating procedural texture remain mandatory.
+The prohibitions on worm-like, fingerprint, wave, wood-grain, hair-like, moire, clustered, and repeating procedural texture remain mandatory even when the user requests an aged or distressed finish.
+
+## Archival Collage Finish Suffix
+
+Append this when `style_preset` is `archival-editorial`:
+
+```text
+Clean professional scanned-paper finish. Express physical collage through controlled cut contours, narrow paper rims where useful, overlap, scale, and very light close contact shadows with one consistent direction. Keep broad paper faces and pure color fields calm, flat, even, and nearly texture-free. Permit only faint low-frequency tonal variation on paper and subtle print character inside photographic cutouts.
+
+No dirt-based aging, stains, mold, oil, water damage, burn marks, corrosion, heavy creases, dense fibers, glossy vector finish, plastic, neon, 3D extrusion, curled paper, floating scraps, or dramatic shadows.
+```
+
+## Riso Print Finish Suffix
+
+Append this when `style_preset` is `riso-editorial`:
+
+```text
+Render as flat geometric screen-print/Riso ink on neutral natural-white paper. Use broad optical masses, clean separable ink colors, and crisp hard printed edges with visible low-frequency contour wobble; wobble changes edge position without blur or feathering. At selected major color junctions only, use narrow unequal paper gaps, exposed paper slivers, slight overlap, or small registration offsets. Keep most large ink fields clean. Concentrate halftone, uneven ink density, missing-ink rubs, short drags, overprint, or registration drift only in these named structural zones: <LOCAL_PRINT_ZONES>.
+
+No watercolor, gouache, wet bleed, fuzzy pigment, heavy dry brush, polished vector smoothness, generic grain filter, all-over halftone, torn paper rim, white sticker outline, pasted seam, contact shadow, curled paper, floating scrap, or 3D extrusion.
+```
 
 ## Background Plate
 
@@ -95,4 +113,5 @@ Before generation, ensure the prompt specifies:
 - transparency or opacity requirement;
 - prohibited artifacts relevant to that asset;
 - whether it is shared or frame-specific;
-- the Surface Integrity Suffix, without changing the selected composition language.
+- the Artifact Prevention Suffix;
+- the finish suffix for the selected style preset, without changing the selected composition language.
