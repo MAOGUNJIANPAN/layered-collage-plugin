@@ -54,6 +54,24 @@ Use `project.json` for shared decisions:
 }
 ```
 
+For `style_preset: "riso-editorial"`, also record the shared print system:
+
+```json
+{
+  "style_preset": "riso-editorial",
+  "riso": {
+    "palette_recipe": "electric-primary",
+    "ink_colors": ["#2455D6", "#F04B23", "#F4DF25"],
+    "paper_substrate": "#F4F0E6",
+    "black_area_target": "below 20%",
+    "intensity": "balanced",
+    "local_print_zones": ["subject shadow band", "accent-to-subject junction"]
+  }
+}
+```
+
+Keep these values stable across frames. The local print zones identify where evidence may concentrate; they do not authorize global grain or all-over distress.
+
 ## Frame Layout Manifest
 
 Use center-based coordinates. `center_x` and `center_y` are pixels on the final canvas. Set either `width` or `height` to preserve the source aspect ratio; set both only when deliberate nonuniform scaling is acceptable.
