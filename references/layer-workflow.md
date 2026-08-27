@@ -54,6 +54,21 @@ Use `project.json` for shared decisions:
 }
 ```
 
+Include `composition_constraints` when `style_preset` is `clean-editorial`:
+
+```json
+{
+  "composition_constraints": {
+    "primary_subjects": 1,
+    "supporting_elements": "2-4",
+    "guide_marks": "3-6",
+    "negative_space_percent": "25-40"
+  }
+}
+```
+
+The ranges are visual targets for the assembled frame, not automatic layer counts. Omit the block for presets that do not use a fixed composition budget.
+
 ## Frame Layout Manifest
 
 Use center-based coordinates. `center_x` and `center_y` are pixels on the final canvas. Set either `width` or `height` to preserve the source aspect ratio; set both only when deliberate nonuniform scaling is acceptable.
