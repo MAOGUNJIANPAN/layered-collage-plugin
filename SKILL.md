@@ -1,6 +1,6 @@
 ---
 name: generate-layered-collage
-description: Create storyboard stills and reusable transparent PNG assets for analog editorial collage projects. Use when a user wants a collage keyframe, layered image package, cut-paper storyboard, reusable subject/store/question-mark/product assets, blank text-label layers for later editing, or a final composite that can later be animated. Generate backgrounds and independent layers first instead of extracting them from a flattened image. Supports a built-in archival collage style or a user-supplied visual reference, with configurable accent colors. Excludes motion scripts, animation prompts, and video generation.
+description: Create storyboard stills and reusable transparent PNG assets for analog editorial collage projects. Use when a user wants a collage keyframe, layered image package, cut-paper storyboard, reusable subject/store/question-mark/product assets, blank text-label layers for later editing, or a final composite that can later be animated. Generate backgrounds and independent layers first instead of extracting them from a flattened image. Supports archival collage and Riso editorial presets or a user-supplied visual reference, with configurable colors. Excludes motion scripts, animation prompts, and video generation.
 ---
 
 # Generate Layered Collage
@@ -19,6 +19,7 @@ Build collage artwork from reusable image layers. Treat the composite as the res
 Read only the references needed for the request:
 
 - For the built-in archival visual language and its clean material finish, read `references/default-style.md`.
+- For flat geometric Riso and screen-print rendering, read `references/riso-editorial-style.md`.
 - For directory structure, manifest fields, reusable assets, and compositing rules, read `references/layer-workflow.md`.
 - For image-generation prompt construction, read `references/prompt-patterns.md`.
 
@@ -34,7 +35,7 @@ Collect or infer:
 - optional people, characters, products, logos, or other identity references supplied for this project;
 - `external_asset_policy`, only when such a reference is supplied: `exact-reuse`, `approved-extraction`, or `reference-led-regenerate`;
 - `style_mode`: `default` or `reference-led`;
-- `style_preset`: `archival-editorial` or a temporary reference-led profile;
+- `style_preset`: `archival-editorial`, `riso-editorial`, or a temporary reference-led profile;
 - `text_mode`: `blank-labels`, `rendered-text`, or `no-text`;
 - primary accent color and any permitted secondary accent;
 - desired background density: `quiet`, `balanced`, or `dense`;
@@ -126,6 +127,8 @@ For each transparent asset:
 - leave no large transparent margins;
 - keep the asset at useful working resolution.
 
+For `riso-editorial`, transparency is a delivery mechanism, not a visible cut-paper effect. Build the semantic object from broad flat ink masses with crisp printed edges and controlled low-frequency contour wobble. Do not add a white paper rim, torn edge, pasted seam, contact shadow, or floating-paper depth unless the user explicitly asks to combine Riso with paper collage. Keep each semantic object together even when it contains several ink colors; split by ink channel only when the user requests real print separations.
+
 For `blank-labels`, generate the complete visual treatment—torn paper, accent underline, tape, edge fibers, and shadow—but leave the intended text area genuinely empty. Do not insert placeholder words, fake glyphs, lorem ipsum, or faint guide text. Save each blank label as its own transparent PNG. Record intended text, safe box, alignment, and suggested treatment in `text-overlay.json`; keep these instructions outside the pixels.
 
 For `rendered-text`, prefer generating the paper shape separately and adding text deterministically in an editor or code-native step. If generated text is used, verify every character before approval.
@@ -167,6 +170,10 @@ Check:
 - final composite is assembled from the delivered background and PNGs;
 - broad paper faces, pure color blocks, faces, text-safe areas, and negative space remain calm and free of procedural texture artifacts;
 - paper shadows are light, close, and directionally consistent.
+- `riso-editorial` assets read through broad silhouettes and a small number of diagnostic forms rather than photographic microdetail;
+- Riso edges remain hard while their position wobbles slightly; there is no blur, feathering, fuzzy halo, watercolor bleed, or brush softness;
+- registration offsets, unequal paper gaps, overprint, halftone, ink-density variation, missing-ink rubs, and short drags appear only in a few named structural zones instead of across every surface;
+- Riso palettes remain clean and separable, use one recorded palette recipe, and keep black secondary rather than turning the frame into a dark photocopy.
 
 When a single layer is wrong, replace that layer and recompose. Do not repeatedly edit the flattened composite.
 
@@ -187,7 +194,7 @@ State any deliberately baked-in background elements. Do not claim a PSD unless a
 
 ## Style Expansion
 
-Treat the built-in archival collage style as one preset, not the entire skill.
+Treat the built-in archival collage and Riso editorial styles as separate presets, not the entire skill.
 
 For a new collage style:
 
