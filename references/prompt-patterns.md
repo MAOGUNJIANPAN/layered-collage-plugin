@@ -2,6 +2,26 @@
 
 Use these as components, not as rigid full prompts. Replace every placeholder.
 
+## Clean Editorial Composition Plan
+
+Use this planning block before generating layers when `style_preset` is `clean-editorial`. Apply the resulting positions and groupings to `layout.json`; do not ask the image model to flatten the whole frame.
+
+```text
+Plan one clean editorial collage frame around exactly one dominant subject and one clear visual claim. Use two to four directly relevant supporting elements, roughly 25–40% intentional negative space, and no more than three to six functional guide marks across the complete composition. Build an asymmetric reading path with meaningful grouping, scale contrast, and restrained overlap. Do not distribute assets evenly, create a specimen board, or use a nine-grid.
+
+Palette: black, charcoal, gray, off-white, <PRIMARY_ACCENT>, and optional subordinate <SECONDARY_ACCENT_OR_NONE>. Use color to organize hierarchy, not to decorate every object.
+```
+
+## Clean Editorial Style Suffix
+
+Append this to background and asset prompts when `style_preset` is `clean-editorial`:
+
+```text
+Clean professional scanned-paper finish. Express collage through controlled cut contours, narrow paper rims where useful, overlap, scale, and very light close contact shadows with one consistent direction. Keep broad paper faces, pure color fields, faces, text-safe areas, and negative space calm, flat, even, and nearly texture-free. Permit only faint low-frequency tonal variation and subtle print character inside photographic cutouts.
+
+No dirt-based aging, stains, mold, oil, water damage, burn marks, corrosion, heavy creases, dense fibers, hair-like lines, repeated particles, texture clumps, worm-like patterns, fingerprints, waves, wood grain, moire, global noise, glossy vector finish, plastic, neon, 3D extrusion, curled paper, floating scraps, or dramatic shadows.
+```
+
 ## Background Plate
 
 ```text
@@ -83,3 +103,4 @@ Before generation, ensure the prompt specifies:
 - transparency or opacity requirement;
 - prohibited artifacts relevant to that asset;
 - whether it is shared or frame-specific.
+- for `clean-editorial`, the frame-level subject, support, guide-mark, negative-space, and palette budgets from the approved composition plan.
