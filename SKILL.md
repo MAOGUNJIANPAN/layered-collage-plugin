@@ -1,26 +1,27 @@
 ---
 name: generate-layered-collage
-description: Create storyboard stills and reusable transparent PNG assets for analog editorial collage projects. Use when a user wants a collage keyframe, layered image package, cut-paper storyboard, reusable subject/store/question-mark/product assets, blank text-label layers for later editing, or a final composite that can later be animated. Generate backgrounds and independent layers first instead of extracting them from a flattened image. Supports archival collage and Riso editorial presets or a user-supplied visual reference, with configurable colors. Excludes motion scripts, animation prompts, and video generation.
+description: Create complete analog editorial collage storyboard stills, paired start/end keyframes, and optional reusable transparent PNG assets. Use when a user wants a collage keyframe, cut-paper storyboard, complete still for downstream video generation, layered image package, reusable subject/store/question-mark/product assets, blank text-label layers, or a deterministic composite. Default to integrated complete frames; split only elements that have a known need for independent motion, replacement, or reuse. Supports a built-in archival collage style or a user-supplied visual reference, with configurable accent colors. Excludes motion scripts, animation prompts, and video generation.
 ---
 
 # Generate Layered Collage
 
-Build collage artwork from reusable image layers. Treat the composite as the result of the layers, never as an unrelated rerender.
+Create visually complete collage keyframes first. Treat transparent layers as an optional production format, not a prerequisite for good composition.
 
 ## Boundaries
 
-- Handle visual analysis, style definition, storyboard composition, opaque backgrounds, transparent PNG layers, deterministic compositing, previews, and quality checks.
+- Handle visual analysis, style definition, storyboard composition, complete raster keyframes, paired start/end frames, optional opaque backgrounds, transparent PNG layers, deterministic compositing, previews, and quality checks.
 - Do not write animation beats, motion scripts, camera instructions, frame timing, or video prompts. Complete those as a separate task after the stills are approved.
-- Do not create a flat final image first and then remove its background unless the user explicitly asks for recovery of an existing artwork. For new work, generate layer-first.
-- Do not silently lock the project to yellow. Treat accent color as a project parameter.
+- For new work, default to an integrated complete frame. Do not force the image model to generate every semantic object separately before the composition is visually solved.
+- Use layers only when the user asks for them or an object has a known need for independent motion, replacement, depth order, or reuse.
+- Do not silently lock the project to yellow, blue, or any other fixed palette. Treat accent colors and their visual roles as project parameters.
 
 ## Load References
 
 Read only the references needed for the request:
 
-- For the built-in archival visual language and its clean material finish, read `references/default-style.md`.
-- For flat geometric Riso and screen-print rendering, read `references/riso-editorial-style.md`.
-- For directory structure, manifest fields, reusable assets, and compositing rules, read `references/layer-workflow.md`.
+- For the built-in visual language, read `references/default-style.md`.
+- For complete stills and paired start/end frames, read `references/keyframe-workflow.md`.
+- For optional transparent assets, directory structure, manifests, and deterministic compositing, read `references/layer-workflow.md`.
 - For image-generation prompt construction, read `references/prompt-patterns.md`.
 
 ## Workflow
@@ -32,114 +33,104 @@ Collect or infer:
 - source copy, message, or scene intent;
 - number of frames or semantic beats;
 - aspect ratio and target resolution;
+- `output_mode`: `integrated-keyframes`, `layered-assets`, or `hybrid`;
 - optional people, characters, products, logos, or other identity references supplied for this project;
 - `external_asset_policy`, only when such a reference is supplied: `exact-reuse`, `approved-extraction`, or `reference-led-regenerate`;
 - `style_mode`: `default` or `reference-led`;
-- `style_preset`: `archival-editorial`, `riso-editorial`, or a temporary reference-led profile;
 - `text_mode`: `blank-labels`, `rendered-text`, or `no-text`;
 - primary accent color and any permitted secondary accent;
 - desired background density: `quiet`, `balanced`, or `dense`;
-- which motifs may be reused across frames.
+- which visual anchors should recur across the series.
+
+Default `output_mode` to `integrated-keyframes` for storyboard stills, start/end frames, and images intended for downstream video generation. Use `layered-assets` only when the user explicitly requests independently movable or reusable files. Use `hybrid` when the complete design should be approved first and only selected motion groups need to be recreated or extracted afterward.
 
 Do not ask for information that can be safely inferred. If color is unspecified, either offer two or three suitable accent choices or, when the user asks for speed, select one and state it before generation.
 
-Default to `blank-labels` for storyboards intended for Jianying, CapCut, Premiere, After Effects, or another editor unless the user explicitly wants finished text inside the artwork. In this mode, generate the styled paper labels without glyphs and record the intended copy and placement separately.
+Default to `blank-labels` only when the user expects later text editing. Otherwise prefer `no-text` for voice-over storyboards unless readable copy materially carries the visual claim. In integrated mode, blank labels may be baked into the complete frame; they do not need separate PNG files unless independent editing or movement is requested.
 
 Do not assume that any recurring person, character, mascot, logo, or brand asset belongs to the skill. Include identity-sensitive material only when the current request supplies or explicitly invokes it. Prefer an approved transparent asset for `exact-reuse`. If only a flattened composite or loose identity reference is available, do not silently invent a replacement: request a canonical asset or make identity approval a separate checkpoint before the storyboard checkpoint.
 
-For `reference-led` work, inspect one to three reference images before generating. Summarize the reusable style genes: material, palette, contrast, texture frequency, edge treatment, typography, spatial density, and compositional rhythm. Do not copy protected characters, logos, or exact compositions unless the user owns or supplied them for that purpose.
+For `reference-led` work, inspect one to three reference images before generating. Summarize the reusable style genes: material, palette, contrast, texture frequency, edge treatment, typography, spatial density, compositional rhythm, and color hierarchy. Do not copy protected characters, logos, or exact compositions unless the user owns or supplied them for that purpose.
 
 ### 2. Split the content into frames
 
 Turn the message into a concise storyboard. Give each frame one primary visual claim. Avoid cramming every noun from the copy into the picture.
 
-Before generating, prepare a layer inventory for every frame:
+For integrated frames, define:
 
-1. opaque background;
-2. shared reusable layers;
-3. frame-specific photographic or character layers;
-4. accent-paper and graphic layers;
-5. exact text layers, if any;
-6. final composite assembled from items 1–5.
+1. primary visual claim and focal subject;
+2. structural anchor or backing plane;
+3. supporting evidence, props, or paper fragments that serve the claim;
+4. palette roles and focal path;
+5. continuity invariants shared with neighboring frames;
+6. controlled change between start and end frames, if paired.
 
-When the project is intended for later animation, default to one layer per semantic object even though this skill does not write the motion plan. For example, three reference photos should normally be three PNGs, not one flattened photo board. Combine them only when the backing and contents are intentionally one inseparable physical collage piece.
-
-Identify exact duplicates before generation. Generate a reusable shop, question mark, tape strip, arrow, or other repeated motif once under `shared/` and reference the same file from multiple manifests. Do not make near-duplicate copies unless the visual direction calls for deliberate variation.
+Do not prepare a layer inventory unless `output_mode` is `layered-assets` or `hybrid`. When layers are required, split by actual motion or reuse group rather than automatically splitting every semantic noun. Follow `references/layer-workflow.md`.
 
 ### 3. Define the project layout
 
-Follow `references/layer-workflow.md`. Use this default structure:
+For `integrated-keyframes`, follow `references/keyframe-workflow.md`. Use a simple structure such as:
 
 ```text
 project/
   project.json
-  shared/
-    question-mark.png
-    optional-subject.png
-  frame01/
-    background.png
-    layers/
-    layout.json
-    text-overlay.json
-    composite.png
-  frame02/
-    background.png
-    layers/
-    layout.json
-    composite.png
+  shot01/
+    start.png
+    end.png
+  shot02/
+    start.png
+    end.png
 ```
 
-Keep every background at the full canvas size and fully opaque. Keep each foreground asset tightly cropped with genuine transparency. The final composite must retain the exact canvas dimensions.
+A single still may use `frame01/complete.png`. Do not create empty `layers/`, manifests, or contact sheets for an integrated-only project.
 
-### 4. Design and generate only the first frame
+For `layered-assets` or `hybrid`, also read `references/layer-workflow.md` and use its layered structure only for the requested motion or reuse groups.
 
-Use staged approval by default:
+### 4. Design and approve the first complete frame
+
+Use staged approval by default when establishing a new style:
 
 1. plan the full series lightly;
-2. fully generate frame 1 and its reusable shared assets;
-3. compose frame 1 from those exact assets;
-4. show the composite and a labeled layer preview;
-5. ask the user to lock or revise style, density, color, and composition;
+2. fully generate the first complete frame;
+3. inspect hierarchy, palette roles, paper behavior, prop relevance, and series anchors;
+4. show the complete frame for approval;
+5. lock or revise style, density, color, and composition;
 6. continue the remaining frames only after approval.
 
-This checkpoint is mandatory when establishing a new style. Skip it only if the user explicitly requests immediate batch generation.
+If the user requests immediate batch generation, proceed without the checkpoint. When a paired start/end shot is the first sample, generate the start frame first, approve its visual system, then generate the end frame with explicit continuity invariants.
 
-### 5. Generate backgrounds and layers
+### 5. Generate according to output mode
 
 Use the image-generation capability for raster creation and editing. When a local reference image is supplied, inspect it before generating.
 
-Generate in this order:
+#### Integrated keyframes
 
-1. opaque background with only elements that will never move independently;
-2. shared transparent assets;
-3. frame-specific transparent assets;
-4. blank label or exact-text elements as separate assets when they must move independently;
-5. layout manifest;
-6. deterministic composite.
+- Generate one complete, polished frame in a single composition-aware pass.
+- Solve scale, overlap, cropping, color hierarchy, physical shadows, and narrative relationships together.
+- Keep every prop relevant to the current visual claim; do not fill space from a generic decoration list.
+- For paired frames, preserve the same visual world while changing only the intended state. Use `references/keyframe-workflow.md`.
+- Regenerate a new frame when the design must change substantially. Do not repeatedly degrade the same raster through many edits.
 
-For each transparent asset:
+#### Layered assets
 
-- request one isolated object only;
-- request a true transparent background and clean alpha edge;
-- include all attached props and anatomy that belong to that object;
-- exclude unrelated shadows, neighboring paper scraps, clipped fragments, and painted checkerboards;
-- preserve the desired torn edge or cut edge inside the visible silhouette;
-- leave no large transparent margins;
-- keep the asset at useful working resolution.
+- Generate an opaque background plus only the independently needed transparent assets.
+- Compose the final frame deterministically from the delivered files.
+- Follow all alpha, manifest, text-label, identity, and validation rules in `references/layer-workflow.md`.
 
-For `riso-editorial`, transparency is a delivery mechanism, not a visible cut-paper effect. Build the semantic object from broad flat ink masses with crisp printed edges and controlled low-frequency contour wobble. Do not add a white paper rim, torn edge, pasted seam, contact shadow, or floating-paper depth unless the user explicitly asks to combine Riso with paper collage. Keep each semantic object together even when it contains several ink colors; split by ink channel only when the user requests real print separations.
+#### Hybrid
 
-For `blank-labels`, generate the complete visual treatment—torn paper, accent underline, tape, edge fibers, and shadow—but leave the intended text area genuinely empty. Do not insert placeholder words, fake glyphs, lorem ipsum, or faint guide text. Save each blank label as its own transparent PNG. Record intended text, safe box, alignment, and suggested treatment in `text-overlay.json`; keep these instructions outside the pixels.
+- Approve the complete integrated frame first.
+- Identify only the elements with a real downstream motion, replacement, or reuse need.
+- Recreate or extract those groups as transparent assets while using the approved frame as the composition and style reference.
+- Preserve the integrated frame as the visual source of truth. Do not imply pixel-perfect reconstruction when regenerated layers differ from it.
 
-For `rendered-text`, prefer generating the paper shape separately and adding text deterministically in an editor or code-native step. If generated text is used, verify every character before approval.
+Keep written language consistent with the user's source copy. Do not translate Chinese copy into English merely because a preferred font is missing. If generated text is required, verify every character. If exact rendering is unavailable, omit the text, use a language-neutral device, or pause for a font choice.
 
-Keep written language consistent with the user's source copy. Do not translate Chinese copy into English merely because a preferred font is missing. For voice-over storyboards, omit readable headlines by default unless text materially carries the visual claim or the user requests it. If the required script cannot be rendered exactly, use a language-neutral visual device or pause for a font choice.
+### 6. Validate the appropriate deliverable
 
-For identity-sensitive assets supplied for the current project, never trade identity fidelity for transparency. If a reference-conditioned generation fails genuine-alpha validation, retry once with a stricter transparency prompt while retaining the identity reference. If it fails again, stop and request a clean canonical asset or explicit permission for extraction; do not drop the reference and approximate the subject from prose. Do not retain that identity as a built-in skill asset or assumption.
+For integrated keyframes, verify canvas size, opacity, file integrity, start/end pairing, and cross-frame visual continuity. Do not fail an integrated image because it has no alpha channel or layer manifest.
 
-### 6. Validate every asset
-
-Use `scripts/collage_layers.py` rather than visual guesswork:
+For layered or hybrid deliverables, use `scripts/collage_layers.py` rather than visual guesswork:
 
 ```bash
 python scripts/collage_layers.py validate project/shared/*.png project/frame01/layers/*.png
@@ -153,55 +144,56 @@ Regenerate an asset when it lacks genuine alpha, contains a checkerboard baked i
 
 ### 7. Perform visual quality control
 
-Inspect both the isolated assets and the assembled composite at 100% zoom.
+Inspect final frames at 100% zoom. When layers exist, inspect both the isolated assets and the assembled composite.
 
 Check:
 
-- one coherent style across all layers;
+- one coherent style across the series;
+- the primary claim reads before the backing plane and decorative marks;
+- recurring anchors create continuity without forcing identical compositions;
+- props reinforce the current narrative and physical setting;
 - no extra hands, arms, fingers, props, or detached fragments;
-- no broken hand-to-wrist or object-to-hand connection;
+- no broken hand-to-wrist, chair-to-leg, stool-to-leg, or object-to-hand connections;
 - exact text spelling and punctuation;
 - no repeating worm-like curls, embossed wallpaper texture, maze pattern, moire, or global crawling microtexture;
 - halftone and photocopy grain stay inside photographic cutouts rather than covering every paper surface;
-- torn fibers occur mainly at paper edges;
+- torn fibers occur mainly at paper edges and remain controlled;
 - no excessive JPEG compression, blur, or repeated-edit damage;
-- shared files are truly reused instead of regenerated;
-- no unintended cropping after rotation;
-- final composite is assembled from the delivered background and PNGs;
-- broad paper faces, pure color blocks, faces, text-safe areas, and negative space remain calm and free of procedural texture artifacts;
-- paper shadows are light, close, and directionally consistent.
-- `riso-editorial` assets read through broad silhouettes and a small number of diagnostic forms rather than photographic microdetail;
-- Riso edges remain hard while their position wobbles slightly; there is no blur, feathering, fuzzy halo, watercolor bleed, or brush softness;
-- registration offsets, unequal paper gaps, overprint, halftone, ink-density variation, missing-ink rubs, and short drags appear only in a few named structural zones instead of across every surface;
-- Riso palettes remain clean and separable, use one recorded palette recipe, and keep black secondary rather than turning the frame into a dark photocopy.
+- start/end pairs retain stable camera, scale logic, paper world, palette, and shadow direction;
+- when layers exist, shared files are truly reused and the final composite is assembled from the delivered files.
 
-When a single layer is wrong, replace that layer and recompose. Do not repeatedly edit the flattened composite.
+For a failed integrated composition, regenerate the complete frame with locked invariants and a focused correction brief. For a failed independent layer, replace that layer and recompose.
 
 ### 8. Deliver
 
-Provide:
+For `integrated-keyframes`, provide:
+
+- approved complete stills or paired start/end frames;
+- the project-level continuity and palette decisions when useful;
+- no unnecessary layer package.
+
+For `layered-assets`, provide:
 
 - approved frame composites;
 - one opaque background per frame;
-- one transparent PNG per independently movable element;
+- one transparent PNG per independently needed element;
 - reusable elements once under `shared/`;
-- one `layout.json` per frame;
-- one `text-overlay.json` per frame when blank labels are used;
-- a labeled contact sheet for quick review;
-- an archive only when useful or requested.
+- one `layout.json` per layered frame;
+- one `text-overlay.json` when blank labels require later editing;
+- a labeled contact sheet when useful.
 
-State any deliberately baked-in background elements. Do not claim a PSD unless a real layered PSD has been created. A folder of PNG layers plus manifests is the standard deliverable.
+For `hybrid`, provide the approved complete frame plus only the requested transparent assets and reconstruction notes. State any elements that remain baked into the complete frame. Do not claim a PSD unless a real layered PSD has been created.
 
 ## Style Expansion
 
-Treat the built-in archival collage and Riso editorial styles as separate presets, not the entire skill.
+Treat the built-in archival collage style as one preset, not the entire skill.
 
 For a new collage style:
 
 1. require or request one to three useful references;
-2. extract style genes without adding them permanently;
+2. extract style genes without replacing the existing default;
 3. run the first-frame approval workflow;
 4. use the temporary profile for the project;
-5. add it as a named preset only after the user explicitly approves updating the skill.
+5. add it as a named preset or optional composition pattern only after the user explicitly approves updating the skill.
 
-Keep new presets separate from the default so their palettes and material rules do not leak into one another.
+Preserve existing presets and elements when adding a new approved pattern. Keep palettes and material rules scoped so one project does not leak into another.

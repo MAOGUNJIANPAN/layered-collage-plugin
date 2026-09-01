@@ -2,34 +2,28 @@
 
 Use these as components, not as rigid full prompts. Replace every placeholder.
 
-## Artifact Prevention Suffix
-
-Append this to every background and asset prompt. It prevents procedural artifacts without changing the selected composition or medium.
+## Integrated Complete Keyframe
 
 ```text
-Keep broad surfaces, faces, text-safe areas, and negative space free of accidental procedural microtexture. No repeated particles, texture clumps, worm-like patterns, fingerprints, waves, wood grain, hair-like lines, moire, crawling noise, or uniform global distress. Do not use texture to hide malformed anatomy, weak silhouettes, or unresolved structure.
+Create one complete, polished <ASPECT_RATIO> analog editorial collage keyframe at <RESOLUTION>. This is a final integrated composition, not a layer sheet, material board, mockup, or collection of isolated assets.
+
+Primary visual claim: <PRIMARY_CLAIM>. Dominant subject or evidence cluster: <FOCAL_SUBJECT>. Structural anchor or physical backing: <STRUCTURAL_ANCHOR>. Supporting papers and props: <SUPPORTING_ELEMENTS>, included only where they clarify the claim. Use <STYLE_PROFILE> with density <DENSITY>.
+
+Color roles: neutral paper, black, gray, and white carry most information; <STRUCTURAL_ACCENT> serves only as the subordinate backing or series anchor; <FOCAL_ACCENT> marks the main point; <ANNOTATION_ACCENT_OR_NONE> appears only in sparse technical annotations. Preserve exact supplied hex values. Do not let a large color field overpower the focal black-and-white information.
+
+Compose the scene as one coherent physical paper world. Resolve scale, overlap, irregular cut or restrained torn edges, canvas-edge cropping, contact shadows, and narrative relationships together. Keep the main claim readable at thumbnail size. Use only relevant drafting marks, registration crosses, crop marks, grids, or annotations. No default cartoon starbursts or explosion badges.
+
+Paper faces are matte, quiet, and low-frequency. Fibers stay mainly at torn edges. Strong halftone and photocopy grain stay inside photographic cutouts. Prohibit repeating curls, worm-like lines, embossed wallpaper patterns, maze textures, wood-grain micro-lines, moire, global crawling noise, random text, watermarks, broken anatomy, malformed furniture, floating props, asset-board spacing, and modern UI.
 ```
 
-The prohibitions on worm-like, fingerprint, wave, wood-grain, hair-like, moire, clustered, and repeating procedural texture remain mandatory even when the user requests an aged or distressed finish.
-
-## Archival Collage Finish Suffix
-
-Append this when `style_preset` is `archival-editorial`:
+## Paired End Keyframe
 
 ```text
-Clean professional scanned-paper finish. Express physical collage through controlled cut contours, narrow paper rims where useful, overlap, scale, and very light close contact shadows with one consistent direction. Keep broad paper faces and pure color fields calm, flat, even, and nearly texture-free. Permit only faint low-frequency tonal variation on paper and subtle print character inside photographic cutouts.
+Create the complete end keyframe for the approved start frame. It must look like the next state of the same designed physical world, not a restyled remake.
 
-No dirt-based aging, stains, mold, oil, water damage, burn marks, corrosion, heavy creases, dense fibers, glossy vector finish, plastic, neon, 3D extrusion, curled paper, floating scraps, or dramatic shadows.
-```
+Preserve exactly: <LOCKED_CAMERA_AND_CANVAS>, <PAPER_WORLD>, <STRUCTURAL_ANCHOR>, <PALETTE_ROLES>, <PHOTOGRAPHIC_CONTRAST>, <EDGE_TREATMENT>, <OBJECT_SCALE_LOGIC>, and <SHADOW_DIRECTION>.
 
-## Riso Print Finish Suffix
-
-Append this when `style_preset` is `riso-editorial`:
-
-```text
-Render as flat geometric screen-print/Riso ink on neutral natural-white paper. Use broad optical masses, clean separable ink colors, and crisp hard printed edges with visible low-frequency contour wobble; wobble changes edge position without blur or feathering. At selected major color junctions only, use narrow unequal paper gaps, exposed paper slivers, slight overlap, or small registration offsets. Keep most large ink fields clean. Concentrate halftone, uneven ink density, missing-ink rubs, short drags, overprint, or registration drift only in these named structural zones: <LOCAL_PRINT_ZONES>.
-
-No watercolor, gouache, wet bleed, fuzzy pigment, heavy dry brush, polished vector smoothness, generic grain filter, all-over halftone, torn paper rim, white sticker outline, pasted seam, contact shadow, curled paper, floating scrap, or 3D extrusion.
+Change only: <INTENDED_STATE_CHANGE>. The end frame must remain a polished standalone composition with one clear focal claim. Do not change the entire prop set, viewpoint, palette, paper material, or layout rhythm. Do not add unrelated decorative objects, random text, cartoon starbursts, new logos, or a different visual style.
 ```
 
 ## Background Plate
@@ -94,7 +88,13 @@ Match the approved first frame in paper tone, halftone scale, edge roughness, pr
 
 ## Correction Prompt
 
-Correct the failed layer, not the composite:
+For an integrated frame, regenerate a new complete version rather than repeatedly degrading the raster:
+
+```text
+Regenerate the complete <FRAME_ID> as a new image. Preserve <LOCKED_INVARIANTS>. Correct <DESIGN_FAILURE>. Keep <UNCHANGED_CONTENT_AND_COLOR_ROLES>. Return one polished complete keyframe, not isolated assets or a layer sheet.
+```
+
+For a layered deliverable, correct the failed layer rather than the composite:
 
 ```text
 Regenerate only <ASSET_ID>. Preserve <LOCKED_PROPERTIES>. Correct <FAILURE>. Do not alter <UNCHANGED_PROPERTIES>. Return one tightly cropped transparent PNG with genuine alpha and no additional elements.
@@ -104,7 +104,7 @@ Regenerate only <ASSET_ID>. Preserve <LOCKED_PROPERTIES>. Correct <FAILURE>. Do 
 
 Before generation, ensure the prompt specifies:
 
-- exactly one asset or one background plate;
+- exactly one complete frame, one asset, or one background plate;
 - intended file role;
 - identity and structural invariants;
 - style profile and approved accent color;
@@ -112,6 +112,6 @@ Before generation, ensure the prompt specifies:
 - edge and shadow behavior;
 - transparency or opacity requirement;
 - prohibited artifacts relevant to that asset;
-- whether it is shared or frame-specific;
-- the Artifact Prevention Suffix;
-- the finish suffix for the selected style preset, without changing the selected composition language.
+- whether it is shared or frame-specific.
+
+For complete frames, also specify the primary visual claim, structural anchor, palette roles, series invariants, and whether the frame is a start or end state. Do not request alpha transparency or layer isolation unless the selected output mode requires it.

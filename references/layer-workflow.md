@@ -1,5 +1,7 @@
 # Layer Workflow and Manifest
 
+Use this reference only for `layered-assets` output or the selectively separated portion of `hybrid` output. Complete integrated keyframes do not require this structure, alpha validation, manifests, or contact sheets.
+
 ## Asset Classes
 
 Classify each visible object before generation.
@@ -21,7 +23,9 @@ Do not bundle or assume a fixed brand character, mascot, person, or logo. When t
 
 Create a separate PNG when an element may need independent timing, movement, replacement, or depth ordering later.
 
-When unsure, split at the semantic-object level. Prefer three independent photo cards over one flattened three-photo board; prefer three products over one product cluster; prefer separate price and service photos. A shared backing paper may be its own layer. Merge only when the group is deliberately treated as one physical cutout in every expected use.
+Split according to known production behavior, not every semantic noun. Prefer three independent photo cards over one flattened three-photo board only when they will move, appear, or be replaced independently. Prefer one complete photo board when it behaves as a single physical collage piece. A shared backing paper may be its own layer when it has a separate role.
+
+When the downstream motion or reuse need is not yet known, keep the design integrated and defer separation. Do not preemptively fragment the composition merely to preserve hypothetical flexibility.
 
 Keep elements together when they must always behave as one physical cutout. Examples:
 
@@ -32,6 +36,8 @@ Keep elements together when they must always behave as one physical cutout. Exam
 - Separate each word block, but not necessarily every letter, unless the letters animate independently.
 
 Do not split anatomy into fragile micro-layers unless explicitly requested.
+
+Identify exact duplicates before generation. Generate a reusable storefront, question mark, tape strip, arrow, product cutout, or other repeated motif once under `shared/` and reference that same file from each manifest. Do not create near-duplicate copies unless the visual direction calls for deliberate variation.
 
 ## Project Manifest
 
@@ -53,24 +59,6 @@ Use `project.json` for shared decisions:
   ]
 }
 ```
-
-For `style_preset: "riso-editorial"`, also record the shared print system:
-
-```json
-{
-  "style_preset": "riso-editorial",
-  "riso": {
-    "palette_recipe": "electric-primary",
-    "ink_colors": ["#2455D6", "#F04B23", "#F4DF25"],
-    "paper_substrate": "#F4F0E6",
-    "black_area_target": "below 20%",
-    "intensity": "balanced",
-    "local_print_zones": ["subject shadow band", "accent-to-subject junction"]
-  }
-}
-```
-
-Keep these values stable across frames. The local print zones identify where evidence may concentrate; they do not authorize global grain or all-over distress.
 
 ## Frame Layout Manifest
 
@@ -170,15 +158,35 @@ python scripts/collage_layers.py normalize input.png output.png --width 2048 --h
 
 Use `--opaque` for background plates and composites only. Omit it for transparent foreground layers.
 
+## Transparent Asset Generation
+
+For each transparent asset:
+
+- request one isolated object or one deliberately inseparable physical group;
+- request a true transparent background and clean alpha edge;
+- include all attached props and anatomy that belong to that object;
+- exclude unrelated shadows, neighboring paper scraps, clipped fragments, and painted checkerboards;
+- preserve the desired torn edge or cut edge inside the visible silhouette;
+- leave no large transparent margins;
+- keep the asset at useful working resolution.
+
+For `blank-labels`, generate the complete visual treatment—torn paper, accent underline, tape, edge fibers, and shadow—but leave the intended text area genuinely empty. Do not insert placeholder words, fake glyphs, lorem ipsum, or faint guide text. Save each independently editable label as its own transparent PNG and record intended copy, safe box, alignment, and suggested treatment in `text-overlay.json`.
+
+For `rendered-text`, prefer generating the paper shape separately and adding text deterministically in an editor or code-native step. If generated text is used, verify every character before approval. Keep written language consistent with the user's source copy; do not substitute English because a preferred font is missing.
+
+For identity-sensitive assets supplied for the current project, never trade identity fidelity for transparency. If reference-conditioned generation fails genuine-alpha validation, retry once with a stricter transparency prompt while retaining the identity reference. If it fails again, stop and request a clean canonical asset or explicit permission for extraction. Do not drop the reference and approximate the subject from prose, and do not retain that identity as a built-in skill asset.
+
 ## Deterministic Composition
 
 Use `scripts/collage_layers.py compose` to create the composite. Do not regenerate a new “matching” final image. This guarantees that the delivered PNGs can reconstruct the approved frame.
+
+This requirement applies to a project whose deliverable is explicitly reconstructable layers. In `hybrid` mode, preserve the approved complete frame as the visual source of truth and state when selected regenerated or extracted assets cannot reconstruct it pixel-for-pixel.
 
 When placement changes, edit `layout.json` and recompose. When appearance changes, replace only the relevant asset and recompose.
 
 ## Review Package
 
-For each approval round, provide:
+For each layered approval round, provide:
 
 - composite preview;
 - labeled contact sheet of transparent layers on a checkerboard preview only;
@@ -186,3 +194,5 @@ For each approval round, provide:
 - notes about any element baked into the background.
 
 The checkerboard belongs only to the review preview and must never be present in the source PNG pixels.
+
+Before delivery, also verify that rotations do not create unintended cropping, shared files are truly reused rather than regenerated, and the delivered background plus PNGs reconstruct the approved layered composite exactly.

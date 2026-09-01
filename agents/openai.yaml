@@ -1,7 +1,7 @@
 interface:
-  display_name: 分层拼贴生图
-  short_description: 按图层生成拼贴分镜、透明素材、空白文字标签与可复合终稿
-  default_prompt: Use $generate-layered-collage 把这段内容制作成可独立移动素材的分层拼贴分镜。
+  display_name: 拼贴分镜与关键帧
+  short_description: 生成完整拼贴分镜与首尾关键帧，并按需制作透明分层素材
+  default_prompt: Use $generate-layered-collage 把这段内容制作成完整的拼贴分镜；只有明确需要独立运动或复用时才拆分图层。
   icon_small: assets/icon.svg
   icon_large: assets/icon.svg
 policy:

@@ -13,28 +13,56 @@ Use this preset when the user asks for the established vintage collage look or s
 - Let the primary subject occupy about 50–60% of the composition unless the brief calls for a denser poster.
 - Preserve purposeful negative space. Fill dead areas with quiet paper structure, not decorative clutter.
 
+## Optional Composition Pattern: Design Dossier on a Work Surface
+
+Use this pattern when the story concerns design reasoning, research, comparison, evidence, editing, or implementation. It extends the archival collage preset; it does not replace the existing poster-like composition.
+
+- Establish one recurring structural anchor such as a file folder, dossier, backing board, drawing sheet, map, or proof packet.
+- Place one dominant evidence cluster above it: a focal photograph, drawing, annotated plan, product proof, or character panel.
+- Let supporting sheets overlap as one physical stack rather than distributing objects evenly across the canvas.
+- Crop a few relevant work tools at the canvas edge to imply a real studio or review session. Suitable tools depend on the story and may include a ruler, caliper, pencil, camera, microphone, phone, binder clip, or another task-specific object.
+- Keep object scale, perspective, surface contact, and shadow direction physically coherent. A prop must look placed on the same surface, not pasted from an unrelated asset board.
+- Use registration crosses, crop marks, drafting circles, grids, measurements, or sparse handwritten annotations as mature technical signals when relevant.
+- Do not add props from a fixed checklist. Every visible tool and paper should support the current narrative claim.
+- Do not default to cartoon starbursts, explosion badges, playful stickers, or childish attention symbols. Use them only when the user or subject explicitly calls for that tone.
+
+## Series Continuity
+
+- Build a family through recurring functions: stable paper world, structural anchor, photographic contrast, edge treatment, palette roles, and shadow direction.
+- Reuse a visual anchor without copying the same composition. The focal subject, paper stack, crop, and density may change from frame to frame.
+- Keep camera viewpoint and physical scale logic stable within a paired start/end shot.
+- Treat props at the canvas edge as continuity cues, but rotate or replace them only when the narrative changes.
+- Each frame must remain a complete standalone design; continuity should not make later frames feel like unfinished variations.
+
+## Color Roles and Hierarchy
+
+- Let neutral black, gray, white, and paper tones carry most information.
+- A larger cool or saturated color field may serve as a physical backing, folder, or structural anchor, but it must remain subordinate to the focal claim at thumbnail size.
+- Use the primary high-chroma accent on the most important subject, evidence, brand cue, or action point.
+- Reserve an optional secondary accent for tiny annotations, registration marks, or a specific contrasting reference; keep it sparse.
+- Assign colors by role before generation. Do not confuse a contextual color mentioned in the story with the brand color of a supplied subject.
+- These are hierarchy rules, not fixed swatches. Preserve user-supplied hexadecimal values and do not hardcode blue, yellow, or red into the preset.
+- If a colored background or backing plane makes black-and-white information hard to read, reduce its area, saturation, or contrast before weakening the primary subject.
+
 ## Paper and Texture
 
-- Treat cleanliness as the finish standard for this preset, not as a different composition style. Preserve the archival, Dada, constructivist, and zine design language above.
-- Make the collage feel physical through controlled cutting, paper rims, overlap, scale, black-and-white photography against pure accent blocks, and restrained contact shadows—not through dirt or dense surface noise.
-- Use clean neutral archival paper rather than yellowed tea-stained paper. The result should resemble a professionally assembled physical collage that was high-quality scanned and lightly restored.
-- Keep broad paper faces, pure color blocks, faces, text-safe areas, and negative space flat, matte, calm, and nearly texture-free.
-- Permit only faint, low-contrast, low-frequency tonal variation on broad paper faces.
-- Concentrate sparse fibers at torn outer edges. Never spread fibers, cracks, or hair-like lines across a paper interior, face, text, or color block.
-- Confine visible halftone, photocopy grain, and print noise to photographic cutouts, and keep them subtle enough to preserve anatomy and facial features.
+- Use clean neutral archival paper rather than yellowed tea-stained paper.
+- Keep broad paper faces mostly matte and low-frequency.
+- Permit subtle random scan grain and natural tonal variation.
+- Concentrate fibers at torn edges.
+- Confine strong halftone, photocopy grain, and print noise to photographic cutouts.
 - Grid and dot paper may appear locally at low contrast. Keep their geometry regular and static.
 - Avoid global texture overlays.
-- Prohibit repeating curls, worm-like lines, fingerprint patterns, waves, embossed wallpaper, maze patterns, wood-grain micro-lines, hair-like strands, moire, clustered particles, texture clumps, and regular generated noise.
-- Prohibit stains, mold, oil, water damage, burn marks, corrosion, heavy creases, dirty gray veils, and other aging effects unless the user explicitly asks for one. An intentional aging effect must remain localized and must never become procedural microtexture.
+- Prohibit repeating curls, worm-like lines, embossed wallpaper patterns, maze patterns, wood-grain micro-lines, moire, and regular generated noise.
 
 ## Edge Language
 
 - Photographs: hand-cut or torn-paper silhouette with a narrow paper rim where suitable.
-- Characters: recognizable isolated cutouts with coherent anatomy and a very light, close physical shadow.
+- Characters: recognizable isolated cutouts with coherent anatomy and modest physical shadow.
 - Accent paper: irregular torn edge, solid matte fill, sparse fiber detail.
 - Tape: semi-opaque or fibrous, slightly misaligned, never glossy plastic.
 - Marks: pencil or dry ink, thin, imperfect, and subordinate to the main subjects.
-- Keep contact shadows soft, restrained, and directionally consistent across the frame. Do not curl, buckle, float, or heavily extrude paper layers.
+- Mix controlled hand-cut edges with a few visibly torn paper edges. Avoid making every sheet a perfect rectangle, but do not let aggressive tears destroy faces, text, or structural clarity.
 
 ## Typography
 
