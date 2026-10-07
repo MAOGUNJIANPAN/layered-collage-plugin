@@ -231,7 +231,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 5px, rgba(0,0,0,.15) 5px 7px); }
 
 .loomframe { position: relative; min-width: 0; display: grid; gap: 10px; }
-.viewport { position: relative; overflow: auto; max-height: min(60vh, 640px); touch-action: pan-x pan-y; }
+.viewport { position: relative; overflow: auto; max-height: min(78vh, 900px); max-height: min(78svh, 900px); touch-action: pan-x pan-y; overscroll-behavior: contain; scrollbar-width: none; }
+.viewport::-webkit-scrollbar { display: none; }
 .viewport canvas { display: block; margin: 0 auto; }
 .viewport.gesture canvas { touch-action: none; }
 .frame-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -366,7 +367,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   .tool { width: 42px; font-size: 10px; }
   .cur-swatch { width: 34px; height: 34px; margin: 4px; }
   .rail .sep { border-top: 0; border-left: 1.5px dashed var(--line); margin: 6px 2px; }
-  .loomframe { padding: 16px 10px; }
+  .loomframe { padding: 0; }
+  .viewport { margin-inline: -16px; max-height: calc(100svh - 120px); }
   .yarn-layout, .draft-layout { grid-template-columns: minmax(0, 1fr); }
   .draft-layout .ctrl { grid-row: auto; }
   .grid2 { grid-template-columns: 1fr; }
@@ -572,6 +574,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
                 <label class="switch">下一行反向回织<input type="checkbox" id="pBack" checked></label>
                 <label class="switch">回织时交换上下<input type="checkbox" id="pSwap"></label>
                 <p>长按某一行约 0.35 秒，出现粉色进度环后横向拖动。拖动期间这一行锁定；往回拖可以缩短这一段，松手织入。短按只选中这一行。</p>
+                <p>双指捏合可以放大缩小织面，双指拖动可以移动织面。</p>
               </div>
             </details>
             <details>
@@ -1068,7 +1071,7 @@ function flood(r, c, to) {
 const ring = $('#pressRing'), shut = $('#shuttleCursor');
 let ptr = null;
 wc.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || sweeping) return;
+  if (e.button !== 0 || sweeping || pinch || (ptr && e.pointerId !== ptr.id)) return;
   const p = cellAt(e); if (!p.inside) return;
   wc.setPointerCapture(e.pointerId);
   ptr = { id: e.pointerId, x: e.clientX, y: e.clientY, cell: p, armed: false, moved: false, t0: performance.now() };
@@ -1077,9 +1080,7 @@ wc.addEventListener('pointerdown', e => {
     const tick = () => { if (!ptr || ptr.armed || ptr.cancel) return; const k = clamp((performance.now() - ptr.t0) / 350, 0, 1); ring.style.setProperty('--p', k);
       if (k >= 1) arm(); else ptr.raf = requestAnimationFrame(tick); };
     ptr.raf = requestAnimationFrame(tick);
-  } else if (S.tool === 'brush' || S.tool === 'unpick') { push(); paintAt(p); }
-  else if (S.tool === 'fill') { push(); flood(p.r, p.c, S.cur); renderAll(); ptr = null; }
-  else if (S.tool === 'flip') { if (S.colors[p.r][p.c] < 0) { toast('这里还没有织入纬线'); ptr = null; return; } push(); S.over[p.r][p.c] = !S.over[p.r][p.c]; S.sel = p.r; renderAll(); ptr = null; }
+  } else if (S.tool === 'brush' || S.tool === 'unpick') { push(); ptr.pushed = true; paintAt(p); }
 });
 function arm() {
   ptr.armed = true; ring.classList.add('armed'); setTimeout(() => ring.classList.remove('show'), 260);
@@ -1103,6 +1104,7 @@ wc.addEventListener('pointermove', e => {
     const c = clamp(Math.floor((e.clientX - b.left - geom.mx) / geom.cs), 0, S.cols - 1);
     preview = weaveSegment(lockRow, ptr.cell.c, c); moveShuttle(e.clientX); drawScene();
   } else if (S.tool === 'brush' || S.tool === 'unpick') paintAt(cellAt(e));
+  else if (dist > 8) ptr.moved = true;
 });
 function endPtr(e, cancelled) {
   if (!ptr || e.pointerId !== ptr.id) return;
@@ -1112,8 +1114,45 @@ function endPtr(e, cancelled) {
     else if (!ptr.armed && !ptr.moved && !cancelled) { S.sel = ptr.cell.r; drawScene(); rowDiagram(); }
     preview = null; lockRow = null; drawScene();
   } else if (S.tool === 'brush' || S.tool === 'unpick') renderAll();
+  else if (!cancelled && !ptr.moved) {
+    // 填色和微调在手指抬起时才生效，这样双指缩放时不会误改
+    const p = ptr.cell;
+    if (S.tool === 'fill') { push(); flood(p.r, p.c, S.cur); renderAll(); }
+    else if (S.tool === 'flip') { if (S.colors[p.r][p.c] < 0) toast('这里还没有织入纬线'); else { push(); S.over[p.r][p.c] = !S.over[p.r][p.c]; S.sel = p.r; renderAll(); } }
+  }
   ptr = null;
 }
+
+/* 双指：捏合缩放，拖动平移。第二根手指落下时，取消第一根手指正在做的事 */
+const touches = new Map(); let pinch = null;
+function cancelSingle() {
+  if (!ptr) return;
+  cancelAnimationFrame(ptr.raf); ring.classList.remove('show'); shut.classList.remove('show');
+  if (ptr.pushed && S.undo.length) restore(S.undo.pop());
+  preview = null; lockRow = null; ptr = null; renderAll();
+}
+const two = () => { const [a, b] = [...touches.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
+wc.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touches.size === 2 && !sweeping) { cancelSingle(); const t = two(); pinch = { d0: t.d, z0: S.zoom, x: t.x, y: t.y }; }
+});
+wc.addEventListener('pointermove', e => {
+  if (!touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!pinch || touches.size < 2) return;
+  const t = two(), r0 = wc.getBoundingClientRect();
+  const fx = (t.x - r0.left) / r0.width, fy = (t.y - r0.top) / r0.height;
+  const z = clamp(pinch.z0 * t.d / pinch.d0, .25, 3);
+  if (Math.abs(z - S.zoom) > .01) { S.zoom = z; drawScene(); }
+  const r1 = wc.getBoundingClientRect();
+  vp.scrollLeft += (r1.left + fx * r1.width) - t.x;
+  vp.scrollTop += (r1.top + fy * r1.height) - t.y;
+  vp.scrollLeft -= t.x - pinch.x; vp.scrollTop -= t.y - pinch.y;
+  pinch.x = t.x; pinch.y = t.y;
+});
+const lift = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+wc.addEventListener('pointerup', lift); wc.addEventListener('pointercancel', lift);
 // 松手后梭子沿着这一行滑过去，格子按穿梭方向一格一格填上；不超过半秒
 let sweeping = false;
 function sweep(seg) {
@@ -1146,7 +1185,7 @@ $('#curSwatch').addEventListener('click', () => go('yarn'));
 const setZoom = z => { S.zoom = clamp(z, .25, 3); drawScene(); };
 $('#zoomIn').addEventListener('click', () => setZoom(S.zoom * 1.25));
 $('#zoomOut').addEventListener('click', () => setZoom(S.zoom / 1.25));
-$('#zoomFit').addEventListener('click', () => { const w = vp.clientWidth - 50, h = Math.min(innerHeight * .6, 640) - 100; setZoom(Math.min(w / (S.cols * 18), h / (S.rows * 18))); });
+$('#zoomFit').addEventListener('click', () => { const w = vp.clientWidth - 40, h = Math.min(innerHeight * .78, 900) - 90; setZoom(Math.min(w / (S.cols * 18), h / (S.rows * 18))); });
 vp.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); setZoom(S.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
 
 /* 穿梭规则面板 */
@@ -1402,7 +1441,7 @@ $('#spareShuttle').addEventListener('click', () => {
 /* ======================= 杂项 ======================= */
 let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
 let fitted = false;
-function refreshScene() { if (view === 'loom') { if (!fitted && vp.clientWidth) { fitted = true; const h = Math.min(innerHeight * .6, 640); if (S.cols * 18 + 50 > vp.clientWidth || S.rows * 18 + 100 > h) $('#zoomFit').click(); } drawScene(); rowDiagram(); ruleVis(); } if (view === 'yarn') { S.pick = S.pick ?? S.cur; yarnScene(); } if (view === 'draft' && !D.result) convert(); }
+function refreshScene() { if (view === 'loom') { if (!fitted && vp.clientWidth) { fitted = true; const h = Math.min(innerHeight * .78, 900); if (S.cols * 18 + 40 > vp.clientWidth || S.rows * 18 + 90 > h) $('#zoomFit').click(); } drawScene(); rowDiagram(); ruleVis(); } if (view === 'yarn') { S.pick = S.pick ?? S.cur; yarnScene(); } if (view === 'draft' && !D.result) convert(); }
 function renderAll() { drawLoomObj(); drawThumb(); drawRuler(); basket(); drawThread(); refreshScene(); }
 
 
