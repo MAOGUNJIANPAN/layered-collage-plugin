@@ -1,0 +1,1158 @@
+<title>织间工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* 布局：一张俯视的工作台（世界坐标），镜头推近某个物件进入场景，返回时拉回同一张桌面 */
+:root {
+  --table: #DCE1D2;        /* 亚麻灰绿桌面 */
+  --table-line: #CDD3C1;
+  --paper: #FBFAF4;
+  --paper-2: #F1EFE5;
+  --well: #ECE9DD;         /* 织布机内部的底色 */
+  --line: #26304A;         /* 扁平描边：靛青墨线 */
+  --fg: #26304A;
+  --muted: #5E667A;
+  --wood: #E6B676;
+  --wood-2: #C68A4A;
+  --accent: #2F5BD3;       /* 钴蓝：与试织中的蓝色线条同源 */
+  --accent-fg: #FFFFFF;
+  --pink: #F2A0B0;
+  --warn: #B8651A;
+  --warn-bg: #FBE7CF;
+  --scrim: rgba(220, 225, 210, .84);
+  --soft-shadow: rgba(38, 48, 74, .16);
+
+  --f-display: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --f-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --t-xs: 12px; --t-sm: 13px; --t-md: 15px; --t-lg: 20px; --t-xl: 28px;
+  --r-sm: 10px; --r-md: 16px; --r-lg: 24px;
+  --ease-cam: cubic-bezier(.65, 0, .25, 1);
+  --ease-pop: cubic-bezier(.3, 1.4, .5, 1);
+  --cam-ms: 760ms;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --table: #1E2332; --table-line: #252B3C; --paper: #2A3042; --paper-2: #323A4F; --well: #222839;
+    --line: #0C101C; --fg: #ECE8DD; --muted: #A6AAB8; --wood: #C99A5E; --wood-2: #8F653A;
+    --accent: #84A2FF; --accent-fg: #0C101C; --pink: #E58C9E; --warn: #F2AE5A; --warn-bg: #3B2F22;
+    --scrim: rgba(30, 35, 50, .88); --soft-shadow: rgba(0, 0, 0, .4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --table: #1E2332; --table-line: #252B3C; --paper: #2A3042; --paper-2: #323A4F; --well: #222839;
+  --line: #0C101C; --fg: #ECE8DD; --muted: #A6AAB8; --wood: #C99A5E; --wood-2: #8F653A;
+  --accent: #84A2FF; --accent-fg: #0C101C; --pink: #E58C9E; --warn: #F2AE5A; --warn-bg: #3B2F22;
+  --scrim: rgba(30, 35, 50, .88); --soft-shadow: rgba(0, 0, 0, .4);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body { background: var(--table); color: var(--fg); font-family: var(--f-body); font-size: var(--t-md); overflow: hidden; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px dashed var(--accent); outline-offset: 3px; }
+
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+
+/* ---------- 顶栏 ---------- */
+.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 2px solid var(--line); background: var(--paper); position: relative; z-index: 20; }
+.logo { display: flex; align-items: baseline; gap: 8px; font-family: var(--f-display); font-size: 24px; letter-spacing: .04em; white-space: nowrap; }
+.logo small { font-family: var(--f-body); font-size: var(--t-xs); color: var(--muted); letter-spacing: .02em; }
+.logo .knot { width: 22px; height: 22px; align-self: center; }
+.crumb { display: flex; align-items: center; gap: 6px; font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
+.crumb b { color: var(--fg); font-weight: 500; }
+.bar .grow { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1.5px dashed var(--muted); font-size: var(--t-xs); color: var(--muted); white-space: nowrap; }
+.chip.dirty { border-style: solid; border-color: var(--warn); color: var(--warn); background: var(--warn-bg); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* ---------- 按钮与控件 ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--paper); color: var(--fg); box-shadow: 0 3px 0 var(--line); cursor: pointer; font-size: var(--t-sm); font-weight: 500; transition: transform .12s, box-shadow .12s; white-space: nowrap; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--line); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); }
+.btn.ghost { box-shadow: none; border-style: dashed; background: transparent; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+.btn svg, .tool svg { width: 18px; height: 18px; flex: none; }
+.icon-btn { width: 36px; padding: 0; }
+
+.seg { display: inline-flex; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--paper); }
+.seg button { border: 0; background: none; padding: 5px 12px; cursor: pointer; font-size: var(--t-sm); }
+.seg button + button { border-left: 2px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: var(--t-sm); cursor: pointer; }
+.switch input { appearance: none; width: 38px; height: 22px; border-radius: 999px; border: 2px solid var(--line); background: var(--paper-2); position: relative; cursor: pointer; flex: none; transition: background .2s; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--line); transition: transform .25s var(--ease-pop); }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(16px); background: var(--accent-fg); }
+
+.num { display: inline-flex; align-items: center; gap: 4px; }
+.num input, .field input[type="number"] { width: 64px; padding: 5px 8px; border: 2px solid var(--line); border-radius: var(--r-sm); background: var(--paper); font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.field { display: grid; gap: 4px; font-size: var(--t-sm); }
+.field .hint { font-size: var(--t-xs); color: var(--muted); }
+input[type="range"] { accent-color: var(--accent); width: 100%; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- 舞台与世界 ---------- */
+.stage { position: relative; overflow: hidden; min-height: 0; }
+.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; transition: transform var(--cam-ms) var(--ease-cam), filter var(--cam-ms) var(--ease-cam); }
+.world.instant { transition: none; }
+.desk { position: absolute; inset: 0; border-radius: 40px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 7px, var(--table-line) 7px 8px),
+    repeating-linear-gradient(90deg, transparent 0 9px, var(--table-line) 9px 10px);
+  opacity: .55; }
+.stage.focused .world { filter: blur(2.5px) saturate(.85); }
+.stage.focused .obj:not(.target) { opacity: .35; }
+
+.obj { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; transform: rotate(var(--rot, 0deg)); transition: transform .3s var(--ease-pop), opacity var(--cam-ms); filter: drop-shadow(0 7px 0 var(--soft-shadow)) drop-shadow(0 20px 22px var(--soft-shadow)); }
+.obj:hover { transform: rotate(var(--rot, 0deg)) translateY(-6px); }
+.obj:focus-visible { outline-offset: 10px; border-radius: 20px; }
+.obj svg.art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tag { position: absolute; font-family: var(--f-display); font-size: 30px; line-height: 1; padding: 8px 18px 9px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--fg); white-space: nowrap; transform: rotate(var(--tr, -4deg)); transition: transform .3s var(--ease-pop); pointer-events: none; }
+.tag small { font-family: var(--f-body); font-size: 17px; color: var(--muted); margin-left: 6px; }
+.obj:hover .tag { transform: rotate(calc(var(--tr, -4deg) * -1)) scale(1.06); }
+
+.loom { width: 620px; height: 560px; z-index: 1; }
+.loom canvas { position: absolute; left: 95px; top: 82px; width: 430px; height: 392px; }
+.loom .tag { left: -10px; top: -26px; }
+.loom .shuttle-obj { transition: transform .5s var(--ease-pop); transform-box: fill-box; transform-origin: center; }
+.loom:hover .shuttle-obj { transform: translateX(-14px) rotate(-2deg); }
+.ruler { width: 470px; height: 52px; z-index: 2; --rot: 1.5deg; }
+.ruler .tag { right: -20px; top: -40px; font-size: 20px; padding: 6px 12px; --tr: 5deg; }
+.yarn { width: 370px; height: 270px; z-index: 3; }
+.yarn .tag { right: 4px; top: -16px; --tr: 4deg; }
+.ballspot { position: absolute; border-radius: 50%; border: 2.5px solid var(--line); transition: background-color .5s, transform .4s var(--ease-pop);
+  background-image:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.45) 0 14%, transparent 34%),
+    repeating-linear-gradient(-32deg, transparent 0 6px, rgba(0,0,0,.13) 6px 8px),
+    repeating-linear-gradient(48deg, transparent 0 9px, rgba(0,0,0,.08) 9px 10px); }
+.yarn:hover .ballspot:nth-of-type(odd) { transform: rotate(-12deg) translateY(-4px); }
+.yarn:hover .ballspot:nth-of-type(even) { transform: rotate(10deg); }
+.draft { width: 340px; height: 330px; z-index: 2; --rot: -3deg; }
+.draft .sheet-paper { position: absolute; left: 0; top: 18px; width: 300px; height: 300px; background: var(--paper); border: 2.5px solid var(--line); border-radius: 6px; }
+.draft .sheet-paper::before { content: ""; position: absolute; left: 50%; top: -14px; width: 90px; height: 26px; margin-left: -45px; background: color-mix(in srgb, var(--pink) 70%, transparent); border: 2px solid var(--line); transform: rotate(-3deg); }
+.draft .grid-thumb { position: absolute; left: 22px; top: 40px; width: 180px; height: 240px; }
+.draft .lines { position: absolute; left: 216px; top: 48px; width: 62px; display: grid; gap: 12px; }
+.draft .lines span { display: block; height: 3px; border-radius: 2px; background: var(--muted); opacity: .45; }
+.draft .lines span:nth-child(3n) { width: 60%; }
+.draft .photo { position: absolute; right: 0; bottom: 0; width: 126px; height: 150px; padding: 8px 8px 26px; background: #FFFFFF; border: 2.5px solid var(--line); transform: rotate(8deg); transition: transform .35s var(--ease-pop); }
+.draft .photo canvas { width: 100%; height: 100%; display: block; }
+.draft:hover .photo { transform: rotate(14deg) translate(8px, -6px); }
+.draft .tag { left: -16px; top: -14px; --tr: -6deg; }
+.note { position: absolute; z-index: 1; width: 190px; padding: 14px 16px 16px; background: color-mix(in srgb, var(--pink) 38%, var(--paper)); border: 2.5px solid var(--line); border-radius: 4px; transform: rotate(4deg); font-size: 17px; line-height: 1.5; pointer-events: none; }
+.note b { font-family: var(--f-display); font-weight: 400; font-size: 21px; display: block; margin-bottom: 4px; }
+.thread { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; overflow: visible; }
+.thread path { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke .5s; }
+.thread path.under { stroke: var(--line); stroke-width: 8; }
+
+.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-size: var(--t-xs); color: var(--muted); background: var(--paper); border: 1.5px dashed var(--muted); border-radius: 999px; padding: 4px 12px; white-space: nowrap; transition: opacity .3s; z-index: 5; }
+.stage.focused .hint-floor { opacity: 0; }
+
+/* ---------- 场景（推近后出现的操作层） ---------- */
+.scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-bottom: 32px; background: var(--scrim); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
+.scene.on { opacity: 1; visibility: visible; transform: none; transition: opacity .36s ease, transform .5s var(--ease-pop), visibility 0s; }
+.scene-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 auto 14px; max-width: 1240px; }
+.eyebrow { font-size: var(--t-xs); letter-spacing: .14em; color: var(--muted); }
+.scene-head h2 { margin: 2px 0 0; font-family: var(--f-display); font-weight: 400; font-size: var(--t-xl); line-height: 1.1; }
+.scene-body { max-width: 1240px; margin: 0 auto; }
+.panel { background: var(--paper); border: 2px solid var(--line); border-radius: var(--r-md); box-shadow: 0 4px 0 var(--line); min-width: 0; }
+.stitch { border: 0; border-top: 2px dashed color-mix(in srgb, var(--muted) 60%, transparent); margin: 0; }
+
+/* 织布机场景 */
+.loom-layout { display: grid; grid-template-columns: 64px minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+.rail { display: flex; flex-direction: column; gap: 6px; padding: 8px; position: sticky; top: 0; }
+.tool { display: grid; place-items: center; gap: 2px; width: 46px; padding: 7px 0 5px; border: 2px solid transparent; border-radius: 12px; background: none; cursor: pointer; font-size: 11px; color: var(--muted); }
+.tool:hover { background: var(--paper-2); color: var(--fg); }
+.tool[aria-pressed="true"] { border-color: var(--line); background: var(--accent); color: var(--accent-fg); box-shadow: 0 2px 0 var(--line); }
+.rail .sep { height: 2px; margin: 4px 6px; background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); opacity: .6; }
+.cur-swatch { width: 40px; height: 40px; margin: 2px auto 0; border-radius: 50%; border: 2.5px solid var(--line); cursor: pointer; background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,.45) 0 14%, transparent 34%), repeating-linear-gradient(-32deg, transparent 0 5px, rgba(0,0,0,.14) 5px 7px); }
+
+.loomframe { position: relative; background: var(--wood); border: 2.5px solid var(--line); border-radius: var(--r-lg); padding: 22px 18px; box-shadow: 0 5px 0 var(--line); min-width: 0; }
+.loomframe::before, .loomframe::after { content: ""; position: absolute; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--wood-2); border: 2px solid var(--line); }
+.loomframe::before { left: 10px; } .loomframe::after { right: 10px; }
+.viewport { position: relative; overflow: auto; max-height: min(62vh, 640px); border: 2px solid var(--line); border-radius: 12px; background: var(--well); touch-action: pan-x pan-y; }
+.viewport canvas { display: block; margin: 0 auto; }
+.viewport.gesture canvas { touch-action: none; }
+.frame-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: var(--t-xs); }
+.frame-foot .mono { background: var(--paper); border: 2px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.zoom { display: inline-flex; align-items: center; gap: 6px; }
+.press-ring { position: fixed; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; pointer-events: none; z-index: 40; opacity: 0;
+  background: conic-gradient(var(--accent) calc(var(--p, 0) * 1turn), transparent 0); -webkit-mask: radial-gradient(circle, transparent 17px, #000 18px); mask: radial-gradient(circle, transparent 17px, #000 18px); }
+.press-ring.show { opacity: 1; }
+.press-ring.armed { animation: armed .35s var(--ease-pop); }
+@keyframes armed { 50% { transform: scale(1.35); } }
+.shuttle-cursor { position: fixed; z-index: 41; width: 64px; height: 22px; margin: -11px 0 0 -32px; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.shuttle-cursor.show { opacity: 1; }
+
+.rowbar { margin-top: 14px; padding: 12px 14px; display: grid; gap: 10px; }
+.rowhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rowhead .rowno { font-family: var(--f-display); font-size: var(--t-lg); }
+.rowhead .rowno .mono { font-family: var(--f-mono); }
+.segs { display: flex; flex-wrap: wrap; gap: 6px; }
+.segchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border: 2px solid var(--line); border-radius: 999px; font-size: var(--t-xs); background: var(--paper); }
+.segchip i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); }
+.track-wrap { overflow-x: auto; padding-bottom: 4px; }
+.track { display: flex; gap: 2px; width: max-content; }
+.track span { width: 12px; height: 26px; border-radius: 3px; border: 1.5px solid var(--line); position: relative; background: var(--well); }
+.track span::after { content: ""; position: absolute; left: 1px; right: 1px; height: 10px; border-radius: 2px; background: var(--c); }
+.track span.o::after { top: 1px; } .track span.u::after { bottom: 1px; opacity: .55; }
+.track span.n::after { display: none; }
+.track span.fl { border-color: var(--warn); box-shadow: 0 0 0 1.5px var(--warn); }
+.track-legend { display: flex; gap: 14px; font-size: var(--t-xs); color: var(--muted); flex-wrap: wrap; }
+.warnline { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: var(--t-xs); font-weight: 500; }
+.warnline svg { width: 16px; height: 16px; flex: none; }
+
+.drawer { padding: 4px 0; }
+.drawer details { padding: 0 14px; }
+.drawer details + details { border-top: 2px dashed color-mix(in srgb, var(--muted) 55%, transparent); }
+.drawer summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 12px 0; font-weight: 700; font-size: var(--t-sm); }
+.drawer summary::-webkit-details-marker { display: none; }
+.drawer summary::after { content: "+"; font-family: var(--f-mono); font-size: 16px; color: var(--muted); transition: transform .25s; }
+.drawer details[open] summary::after { transform: rotate(45deg); }
+.drawer .inner { display: grid; gap: 10px; padding-bottom: 14px; }
+.drawer .row2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--t-sm); flex-wrap: wrap; }
+.drawer p { margin: 0; font-size: var(--t-xs); color: var(--muted); line-height: 1.6; }
+.rule-visual { display: flex; gap: 3px; }
+.rule-visual span { width: 14px; height: 22px; border-radius: 3px; border: 1.5px solid var(--line); background: var(--well); position: relative; }
+.rule-visual span.o { background: var(--accent); }
+.rule-visual span.u::after { content: ""; position: absolute; left: 3px; right: 3px; top: 0; bottom: 0; background: var(--wood); border-left: 1.5px solid var(--line); border-right: 1.5px solid var(--line); }
+
+/* 尺寸弹层 */
+.sheet-scrim { position: absolute; inset: 0; z-index: 30; background: color-mix(in srgb, var(--line) 35%, transparent); display: grid; place-items: center; padding: 16px; opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s .25s; }
+.sheet-scrim.on { opacity: 1; visibility: visible; transition: opacity .25s; }
+.sizesheet { width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 20px; display: grid; gap: 14px; transform: translateY(20px) rotate(-1deg); transition: transform .4s var(--ease-pop); }
+.sheet-scrim.on .sizesheet { transform: none; }
+.sizesheet h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: var(--t-lg); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.radio-card { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; cursor: pointer; font-size: var(--t-sm); }
+.radio-card:has(input:checked) { background: color-mix(in srgb, var(--accent) 14%, var(--paper)); }
+.radio-card input { accent-color: var(--accent); grid-row: span 2; margin-top: 3px; }
+.radio-card span { font-size: var(--t-xs); color: var(--muted); }
+.sheet-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+
+/* 毛线场景 */
+.yarn-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.basket { padding: 18px; background: var(--wood); border: 2.5px solid var(--line); border-radius: 36px 36px 60px 60px; box-shadow: 0 5px 0 var(--line); }
+.basket-inner { background: color-mix(in srgb, var(--wood-2) 45%, var(--wood)); border: 2px solid var(--line); border-radius: 26px 26px 48px 48px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 14px 10px; }
+.ballbtn { display: grid; justify-items: center; gap: 4px; border: 0; background: none; cursor: pointer; padding: 4px; border-radius: 16px; position: relative; }
+.ballbtn .b { width: 70px; height: 70px; border-radius: 50%; border: 2.5px solid var(--line); transition: transform .35s var(--ease-pop);
+  background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,.45) 0 14%, transparent 34%), repeating-linear-gradient(-32deg, transparent 0 6px, rgba(0,0,0,.13) 6px 8px), repeating-linear-gradient(48deg, transparent 0 9px, rgba(0,0,0,.08) 9px 10px); }
+.ballbtn:hover .b { transform: rotate(-14deg) translateY(-4px); }
+.ballbtn .nm { font-size: var(--t-xs); font-weight: 500; color: var(--fg); background: var(--paper); border: 1.5px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+.ballbtn[aria-pressed="true"] .b { box-shadow: 0 0 0 4px var(--paper), 0 0 0 7px var(--accent); }
+.ballbtn .badges { position: absolute; top: 0; right: 6px; display: flex; gap: 2px; }
+.badge { font-size: 11px; line-height: 1; padding: 3px 5px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--paper); font-weight: 700; }
+.badge.w { background: var(--accent); color: var(--accent-fg); }
+.yarn-detail { padding: 18px; display: grid; gap: 14px; }
+.bigball { width: 132px; height: 132px; margin: 4px auto; border-radius: 50%; border: 3px solid var(--line); transition: background-color .4s;
+  background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,.45) 0 14%, transparent 34%), repeating-linear-gradient(-32deg, transparent 0 9px, rgba(0,0,0,.13) 9px 12px), repeating-linear-gradient(48deg, transparent 0 13px, rgba(0,0,0,.08) 13px 15px); }
+.yarn-detail h3 { margin: 0; text-align: center; font-family: var(--f-display); font-weight: 400; font-size: var(--t-xl); }
+.yarn-detail .hex { text-align: center; color: var(--muted); font-size: var(--t-sm); }
+.stack { display: grid; gap: 8px; }
+.addrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.addrow input[type="color"] { width: 44px; height: 36px; padding: 2px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); cursor: pointer; }
+.addrow input[type="text"] { flex: 1; min-width: 100px; padding: 6px 10px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); }
+.count { font-size: var(--t-xs); color: var(--muted); }
+
+/* 草稿场景 */
+.draft-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr); gap: 16px; align-items: start; }
+.card { padding: 16px; display: grid; gap: 12px; }
+.card h3 { margin: 0; font-size: var(--t-md); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card h3 em { font-style: normal; font-weight: 400; font-size: var(--t-xs); color: var(--muted); }
+.drop { position: relative; border: 2px dashed var(--muted); border-radius: 12px; background: var(--well); display: grid; place-items: center; min-height: 260px; padding: 10px; transition: background .2s, border-color .2s; }
+.drop.over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--well)); }
+.drop canvas { max-width: 100%; max-height: 320px; border: 2px solid var(--line); background: #FFFFFF; }
+.drop .pick { position: absolute; right: 10px; bottom: 10px; }
+.demo-flag { font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--paper); border: 1.5px solid var(--line); position: absolute; left: 10px; top: 10px; }
+.preview-box { border-radius: 12px; background: var(--well); border: 2px solid var(--line); display: grid; place-items: center; min-height: 260px; padding: 10px; }
+.preview-box canvas { max-width: 100%; max-height: 320px; image-rendering: pixelated; }
+.palette-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.palette-row i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); }
+.caveat { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); color: var(--fg); font-size: var(--t-xs); line-height: 1.65; border: 1.5px solid color-mix(in srgb, var(--warn) 55%, transparent); }
+.caveat b { color: var(--warn); }
+.caveat ul { margin: 0; padding-left: 1.2em; }
+.files { margin-top: 16px; display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 14px 16px; }
+.files .label { font-weight: 700; font-size: var(--t-sm); }
+.files .grow { flex: 1; }
+.applied { display: none; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: color-mix(in srgb, var(--accent) 12%, var(--paper)); font-size: var(--t-xs); }
+.applied.on { display: flex; }
+
+.toast { position: absolute; left: 50%; bottom: 22px; z-index: 50; transform: translate(-50%, 30px); opacity: 0; max-width: min(520px, calc(100% - 32px)); padding: 10px 16px; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); box-shadow: 0 4px 0 var(--line); font-size: var(--t-sm); line-height: 1.5; transition: transform .4s var(--ease-pop), opacity .2s; pointer-events: none; }
+.toast.on { transform: translate(-50%, 0); opacity: 1; }
+
+@media (max-width: 1080px) {
+  .loom-layout { grid-template-columns: 64px minmax(0, 1fr); }
+  .drawer { grid-column: 1 / -1; }
+  .draft-layout { grid-template-columns: 1fr 1fr; }
+  .draft-layout .ctrl { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 760px) {
+  .bar { gap: 8px; padding: 8px 12px; }
+  .logo small, .chip .txt-long { display: none; }
+  .loom-layout { grid-template-columns: minmax(0, 1fr); }
+  .rail { flex-direction: row; flex-wrap: wrap; position: static; justify-content: center; gap: 2px; }
+  .tool { width: 40px; font-size: 10px; }
+  .cur-swatch { width: 34px; height: 34px; margin: 4px; }
+  .rail .sep { width: 2px; height: auto; margin: 6px 2px; background: repeating-linear-gradient(0deg, var(--muted) 0 4px, transparent 4px 7px); }
+  .loomframe { padding: 16px 10px; }
+  .yarn-layout, .draft-layout { grid-template-columns: minmax(0, 1fr); }
+  .draft-layout .ctrl { grid-row: auto; }
+  .grid2 { grid-template-columns: 1fr; }
+  .scene-head h2 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --cam-ms: 1ms; }
+  .scene, .scene.on, .obj, .tag, .toast, .sizesheet { transition-duration: .01ms !important; }
+  .press-ring.armed { animation: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-shuttle" viewBox="0 0 24 24"><path d="M2 12c3-3.5 17-3.5 20 0-3 3.5-17 3.5-20 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24"><path d="M15 4l5 5-9 9H6v-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M13 6l5 5" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-fill" viewBox="0 0 24 24"><path d="M4 11l7-7 7 7-7 7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 11h14" stroke="currentColor" stroke-width="2"/><path d="M20 15c1 1.6 1.8 2.8 1.8 3.6a1.8 1.8 0 0 1-3.6 0c0-.8.8-2 1.8-3.6z" fill="currentColor"/></symbol>
+    <symbol id="i-unpick" viewBox="0 0 24 24"><circle cx="6" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="17" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 8.6L20 18M8.5 15.4L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M8 20V4M8 4L5 7M8 4l3 3M16 4v16M16 20l-3-3M16 20l3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5 5 0 0 1 0 10H11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 9H9.5a5 5 0 0 0 0 10H13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M10 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5M12 18v.3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-size" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4" stroke="currentColor" stroke-width="1.6"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="bar">
+    <button class="btn icon-btn" id="backBtn" aria-label="回到工作台" title="回到工作台 (Esc)" hidden><svg><use href="#i-back"/></svg></button>
+    <div class="logo">
+      <svg class="knot" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--accent)" stroke="var(--line)" stroke-width="2"/><path d="M5 9c4 2 10 2 14 0M5 15c4-2 10-2 14 0M9 4c-2 4-2 12 0 16M15 4c2 4 2 12 0 16" fill="none" stroke="var(--accent-fg)" stroke-width="1.4"/></svg>
+      织间<small>视觉原型 v0</small>
+    </div>
+    <nav class="crumb" aria-label="位置"><span>工作台</span><span id="crumbSep" hidden>›</span><b id="crumbHere"></b></nav>
+    <span class="grow"></span>
+    <span class="chip" id="saveChip"><span class="dot"></span><span id="saveTxt">示例草稿</span><span class="txt-long">· 需手动保存</span></span>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="world" id="world">
+      <div class="desk"></div>
+
+      <button class="obj loom" id="objLoom" data-go="loom" aria-label="织布机：进入穿线试织">
+        <svg class="art" viewBox="0 0 620 560" aria-hidden="true">
+          <rect x="22" y="14" width="44" height="532" rx="20" fill="var(--wood)" stroke="var(--line)" stroke-width="3"/>
+          <rect x="554" y="14" width="44" height="532" rx="20" fill="var(--wood)" stroke="var(--line)" stroke-width="3"/>
+          <rect x="0" y="34" width="620" height="46" rx="23" fill="var(--wood)" stroke="var(--line)" stroke-width="3"/>
+          <path d="M40 50c80 6 160-4 260 2s200 4 280-2M50 64c120-4 300 6 520-2" fill="none" stroke="var(--wood-2)" stroke-width="2" opacity=".55"/>
+          <rect x="0" y="478" width="620" height="50" rx="25" fill="var(--wood)" stroke="var(--line)" stroke-width="3"/>
+          <path d="M40 496c120 5 260-5 380 0s120 2 160 0M60 512c160-4 340 4 500 0" fill="none" stroke="var(--wood-2)" stroke-width="2" opacity=".55"/>
+          <circle cx="23" cy="57" r="13" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="597" cy="57" r="13" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="23" cy="503" r="13" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+          <circle cx="597" cy="503" r="13" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+          <rect x="88" y="476" width="444" height="6" fill="var(--line)" opacity=".25"/>
+        </svg>
+        <canvas id="loomCanvas" aria-hidden="true"></canvas>
+        <svg class="art" viewBox="0 0 620 560" aria-hidden="true" style="pointer-events:none">
+          <rect x="70" y="118" width="480" height="22" rx="8" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+          <g class="shuttle-obj">
+            <path d="M360 452c40-16 190-20 236-4-44 18-196 20-236 4z" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M420 446h120" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+          </g>
+        </svg>
+        <span class="tag">织布机</span>
+      </button>
+
+      <button class="obj ruler" id="objRuler" data-go="loom" data-sheet="1" aria-label="尺子：调整织面尺寸">
+        <svg class="art" viewBox="0 0 470 52" aria-hidden="true" id="rulerArt"></svg>
+        <span class="tag" id="rulerTag">12 × 16 cm</span>
+      </button>
+
+      <svg class="thread" id="thread" aria-hidden="true"><path class="under" id="threadUnder"/><path id="threadPath"/></svg>
+
+      <button class="obj yarn" id="objYarn" data-go="yarn" aria-label="毛线：进入选线">
+        <svg class="art" viewBox="0 0 370 270" aria-hidden="true">
+          <path d="M10 120h350l-26 130a20 20 0 0 1-20 16H56a20 20 0 0 1-20-16z" fill="var(--wood)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M24 160h322M30 196h310M38 232h294" stroke="var(--wood-2)" stroke-width="3" stroke-dasharray="14 10"/>
+          <rect x="0" y="108" width="370" height="26" rx="13" fill="var(--wood-2)" stroke="var(--line)" stroke-width="3"/>
+        </svg>
+        <span class="ballspot" style="left:40px;top:34px;width:100px;height:100px"></span>
+        <span class="ballspot" style="left:132px;top:12px;width:92px;height:92px"></span>
+        <span class="ballspot" style="left:214px;top:40px;width:96px;height:96px"></span>
+        <span class="ballspot" style="left:286px;top:62px;width:70px;height:70px"></span>
+        <span class="ballspot" style="left:-6px;top:150px;width:86px;height:86px"></span>
+        <span class="tag">毛线<small id="yarnCount">8 色</small></span>
+      </button>
+
+      <button class="obj draft" id="objDraft" data-go="draft" aria-label="草稿：进入图片转换与草稿文件">
+        <div class="sheet-paper"><canvas class="grid-thumb" id="draftThumb"></canvas><div class="lines"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+        <div class="photo"><canvas id="photoThumb" width="220" height="250"></canvas></div>
+        <span class="tag">草稿</span>
+      </button>
+
+      <div class="note" id="note"><b>示例草稿</b>24 根经线 × 32 行<br>中间 4 根经线宽的蓝色线条</div>
+    </div>
+
+    <div class="hint-floor">点织布机、毛线或草稿进入 · 尺子可以调整织面尺寸</div>
+
+    <!-- 织布机场景 -->
+    <section class="scene" id="scene-loom" aria-label="织布机">
+      <div class="scene-head">
+        <div><div class="eyebrow">织布机 · 穿线试织</div><h2>长按一行，拖动穿梭</h2></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" data-sheet-open><svg><use href="#i-size"/></svg>调整织面</button>
+          <button class="btn" data-go="yarn">换线</button>
+        </div>
+      </div>
+      <div class="scene-body">
+        <div class="loom-layout">
+          <div class="panel rail" role="toolbar" aria-label="工具">
+            <button class="tool" data-tool="shuttle" aria-pressed="true" title="穿梭：长按 0.35 秒后横向拖动"><svg><use href="#i-shuttle"/></svg>穿梭</button>
+            <button class="tool" data-tool="brush" aria-pressed="false" title="画笔"><svg><use href="#i-brush"/></svg>画笔</button>
+            <button class="tool" data-tool="fill" aria-pressed="false" title="填色"><svg><use href="#i-fill"/></svg>填色</button>
+            <button class="tool" data-tool="unpick" aria-pressed="false" title="拆线"><svg><use href="#i-unpick"/></svg>拆线</button>
+            <button class="tool" data-tool="flip" aria-pressed="false" title="单点微调：切换上下"><svg><use href="#i-flip"/></svg>微调</button>
+            <div class="sep"></div>
+            <button class="tool" id="undoBtn" title="撤销 (Ctrl+Z)"><svg><use href="#i-undo"/></svg>撤销</button>
+            <button class="tool" id="redoBtn" title="重做 (Ctrl+Shift+Z)"><svg><use href="#i-redo"/></svg>重做</button>
+            <div class="sep"></div>
+            <button class="cur-swatch" id="curSwatch" title="当前线色：点击去选线" aria-label="当前线色"></button>
+          </div>
+
+          <div style="min-width:0">
+            <div class="loomframe">
+              <div class="viewport gesture" id="viewport"><canvas id="weaveCanvas"></canvas></div>
+              <div class="frame-foot">
+                <span class="mono" id="sizeLabel">24 根 × 32 行 · 12 × 16 cm</span>
+                <span class="zoom">
+                  <button class="btn icon-btn" id="zoomOut" aria-label="缩小"><svg><use href="#i-minus"/></svg></button>
+                  <span class="mono" id="zoomLabel" style="min-width:52px;text-align:center">100%</span>
+                  <button class="btn icon-btn" id="zoomIn" aria-label="放大"><svg><use href="#i-plus"/></svg></button>
+                  <button class="btn icon-btn" id="zoomFit" aria-label="适配"><svg><use href="#i-fit"/></svg></button>
+                </span>
+              </div>
+            </div>
+
+            <div class="panel rowbar" aria-live="polite">
+              <div class="rowhead">
+                <button class="btn icon-btn" id="rowPrev" aria-label="上一行"><svg><use href="#i-back"/></svg></button>
+                <span class="rowno">第 <span class="mono" id="rowNo">1</span> 行 <small class="mono" style="font-size:13px;color:var(--muted)" id="rowTotal">/ 32</small></span>
+                <button class="btn icon-btn" id="rowNext" aria-label="下一行"><svg><use href="#i-next"/></svg></button>
+                <span class="grow" style="flex:1"></span>
+                <span class="chip" id="rowState">逐行图解</span>
+              </div>
+              <div class="segs" id="segs"></div>
+              <div class="track-wrap"><div class="track" id="track"></div></div>
+              <div class="track-legend"><span>▀ 纬线在经线上方（压）</span><span>▄ 纬线在经线下方（挑）</span><span>空格 = 尚未织入</span></div>
+              <div id="floats"></div>
+            </div>
+          </div>
+
+          <aside class="panel drawer">
+            <details open>
+              <summary>穿梭规则</summary>
+              <div class="inner">
+                <div class="row2"><span>压 <span class="num"><input type="number" id="pPress" min="1" max="12" value="1"></span> 根</span><span>挑 <span class="num"><input type="number" id="pLift" min="1" max="12" value="1"></span> 根</span></div>
+                <div class="rule-visual" id="ruleVis" aria-hidden="true"></div>
+                <div class="row2"><span>起始步骤</span><span class="num"><input type="number" id="pStart" min="1" max="2" value="1"></span></div>
+                <div class="row2"><span>穿梭方向</span><span class="seg" role="group" aria-label="穿梭方向"><button data-dir="1" aria-pressed="true">左 → 右</button><button data-dir="-1" aria-pressed="false">右 → 左</button></span></div>
+                <label class="switch">延续同一行已有路径<input type="checkbox" id="pCont" checked></label>
+                <label class="switch">下一行反向回织<input type="checkbox" id="pBack" checked></label>
+                <label class="switch">回织时交换上下<input type="checkbox" id="pSwap"></label>
+                <p>长按某一行约 0.35 秒，出现蓝色进度环后横向拖动。拖动期间这一行锁定；往回拖可以缩短这一段，松手织入。短按只选中这一行。</p>
+              </div>
+            </details>
+            <details>
+              <summary>按经线范围织入</summary>
+              <div class="inner">
+                <div class="row2"><span>第 <span class="num"><input type="number" id="rgRow" min="1" value="27"></span> 行</span></div>
+                <div class="row2"><span>经线 <span class="num"><input type="number" id="rgFrom" min="1" value="1"></span></span><span>到 <span class="num"><input type="number" id="rgTo" min="1" value="24"></span></span></div>
+                <button class="btn" id="rgGo">用当前线色织入</button>
+              </div>
+            </details>
+            <details>
+              <summary>单点微调</summary>
+              <div class="inner"><p>选「微调」工具后点任意交叉点，切换纬线在这根经线上方还是下方。只改这一个点，不影响配色。</p></div>
+            </details>
+            <details>
+              <summary>显示</summary>
+              <div class="inner">
+                <label class="switch">经纬纹理<input type="checkbox" id="dTex" checked></label>
+                <label class="switch">经线与行编号<input type="checkbox" id="dNum"></label>
+                <div class="row2"><span>浮线提醒：连续超过</span><span><span class="num"><input type="number" id="dFloat" min="2" max="40" value="5"></span> 根</span></div>
+              </div>
+            </details>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- 毛线场景 -->
+    <section class="scene" id="scene-yarn" aria-label="毛线">
+      <div class="scene-head">
+        <div><div class="eyebrow">毛线 · 选线</div><h2>挑一团线，带去织布机</h2></div>
+        <span class="count mono" id="yarnCount2">8 / 24 色</span>
+      </div>
+      <div class="scene-body yarn-layout">
+        <div class="basket"><div class="basket-inner" id="ballGrid"></div></div>
+        <div class="panel yarn-detail">
+          <div class="bigball" id="bigBall"></div>
+          <div><h3 id="ballName">钴蓝</h3><div class="hex mono" id="ballHex">#2F5BD3</div></div>
+          <div class="stack">
+            <button class="btn primary" id="useWeft">用作当前纬线</button>
+            <button class="btn" id="useWarp">设为经线颜色</button>
+            <button class="btn ghost" data-go="loom">带去织布机</button>
+          </div>
+          <hr class="stitch">
+          <div class="stack">
+            <span class="field">添加线色<span class="hint">最多 24 色。添加后会放进篮子。</span></span>
+            <div class="addrow"><input type="color" id="newColor" value="#7FB3A7" aria-label="新线色"><input type="text" id="newName" placeholder="线色名称" aria-label="线色名称"><button class="btn" id="addColor"><svg><use href="#i-plus"/></svg>添加</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 草稿场景 -->
+    <section class="scene" id="scene-draft" aria-label="草稿">
+      <div class="scene-head">
+        <div><div class="eyebrow">草稿 · 图片转换</div><h2>把照片变成配色草稿</h2></div>
+        <span class="chip">在本机处理 · 图片不会上传</span>
+      </div>
+      <div class="scene-body">
+        <div class="draft-layout">
+          <div class="panel card">
+            <h3>原图 <em>JPG · PNG · WebP</em></h3>
+            <div class="drop" id="drop">
+              <span class="demo-flag" id="demoFlag">示例照片</span>
+              <canvas id="srcCanvas"></canvas>
+              <label class="btn pick">选择图片<input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp" hidden></label>
+            </div>
+            <div class="row2" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+              <span class="seg" role="group" aria-label="转换方式"><button data-mode="fabric" aria-pressed="true">织物照片</button><button data-mode="flat" aria-pressed="false">平面图案</button></span>
+              <span class="seg" role="group" aria-label="取景"><button data-fit="contain" aria-pressed="true">完整保留</button><button data-fit="cover" aria-pressed="false">居中裁切</button></span>
+            </div>
+          </div>
+
+          <div class="panel card ctrl">
+            <h3>转换设置</h3>
+            <label class="field"><span>主要颜色 <span class="mono" id="kVal">6</span> 种</span><input type="range" id="kIn" min="2" max="12" value="6"></label>
+            <label class="field"><span>纹理简化：<span id="blurVal">中</span></span><input type="range" id="blurIn" min="0" max="3" value="2"><span class="hint">越高越能压掉毛线纹理和阴影，也越容易抹掉细节。</span></label>
+            <label class="switch">尝试忽略浅色细线<input type="checkbox" id="ignoreLight" checked></label>
+            <p class="hint" style="margin:-4px 0 0;font-size:12px;color:var(--muted)">例如后期缝上去的白线。也可能误删真正的浅色细节。</p>
+            <label class="switch">按原图比例设置织面<input type="checkbox" id="keepRatio"></label>
+            <div class="caveat">
+              <b>转换结果只是配色草稿</b>
+              <ul>
+                <li>只记录颜色分布，不会还原原织物的织法。应用后交织关系是默认平纹，需要在织布机上再调整。</li>
+                <li>原图的经纬密度、细线条占几根经线，目前无法可靠识别。细线条可能变窄，请对照实物核对。</li>
+                <li>花色毛线、阴影和后缝线会干扰取色。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="panel card">
+            <h3>配色草稿预览 <em class="mono" id="pvSize">24 × 32</em></h3>
+            <div class="preview-box"><canvas id="pvCanvas"></canvas></div>
+            <div class="palette-row" id="pvPal"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn primary" id="applyBtn">应用到草稿</button>
+            </div>
+            <div class="applied" id="appliedNote"><span>已应用。交织关系为默认平纹。</span><button class="btn" data-go="loom">去织布机调整</button></div>
+          </div>
+        </div>
+
+        <div class="panel files">
+          <span class="label">草稿文件</span>
+          <button class="btn" data-proto="保存 JSON 草稿">保存草稿</button>
+          <button class="btn" data-proto="打开 JSON 草稿">打开草稿</button>
+          <button class="btn" data-proto="导出 PNG 图解">导出 PNG</button>
+          <button class="btn" data-proto="导出 SVG 图解">导出 SVG</button>
+          <span class="grow"></span>
+          <span class="count">JSON 包含配色、交织关系和路径。较大的织面建议导出 SVG。目前没有自动保存。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 织面尺寸弹层 -->
+    <div class="sheet-scrim" id="sizeScrim">
+      <div class="panel sizesheet" role="dialog" aria-modal="true" aria-labelledby="sizeTitle">
+        <h3 id="sizeTitle">调整织面</h3>
+        <div class="grid2">
+          <label class="field">宽度 cm<input type="number" id="szW" min="2" max="200" step="0.5"><span class="hint">2–200</span></label>
+          <label class="field">高度 cm<input type="number" id="szH" min="2" max="200" step="0.5"><span class="hint">2–200</span></label>
+          <label class="field">经线根数<input type="number" id="szC" min="4" max="240"><span class="hint">4–240</span></label>
+          <label class="field">纬线行数<input type="number" id="szR" min="4" max="600"><span class="hint">4–600</span></label>
+        </div>
+        <hr class="stitch">
+        <div class="grid2">
+          <label class="field">每厘米经线<input type="number" id="dnW" min="0.5" max="20" step="0.1" value="2"></label>
+          <label class="field">每厘米纬线<input type="number" id="dnH" min="0.5" max="20" step="0.1" value="2"></label>
+        </div>
+        <button class="btn ghost" id="densCalc">按试织密度换算根数与行数</button>
+        <hr class="stitch">
+        <label class="radio-card"><input type="radio" name="rsz" value="keep" checked>保留原格子<span>新增的部分是空白，多出的部分会被裁掉。</span></label>
+        <label class="radio-card"><input type="radio" name="rsz" value="scale">按比例缩放配色<span>缩放后交织关系会重设为平纹。</span></label>
+        <div class="sheet-actions"><button class="btn ghost" id="sizeCancel">取消</button><button class="btn primary" id="sizeApply">应用尺寸</button></div>
+      </div>
+    </div>
+
+    <div class="press-ring" id="pressRing"></div>
+    <svg class="shuttle-cursor" id="shuttleCursor" viewBox="0 0 64 22" aria-hidden="true"><path d="M2 11C14 1 50 1 62 11 50 21 14 21 2 11z" fill="var(--wood-2)" stroke="var(--line)" stroke-width="2.5"/><path d="M20 11h24" stroke="var(--line)" stroke-width="2.5" stroke-linecap="round"/></svg>
+    <div class="toast" id="toast" role="status"></div>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ======================= 演示数据（不代表功能版本的数据结构） ======================= */
+const S = {
+  cols: 24, rows: 32, wCm: 12, hCm: 16, denW: 2, denH: 2,
+  palette: [
+    { name: '本白', hex: '#EFE8D8' }, { name: '靛青', hex: '#2B3A67' }, { name: '钴蓝', hex: '#2F5BD3' },
+    { name: '芥黄', hex: '#E3B23C' }, { name: '番茄', hex: '#E5533D' }, { name: '樱粉', hex: '#F2A0B0' },
+    { name: '苔绿', hex: '#7A9A5B' }, { name: '炭灰', hex: '#55585E' }
+  ],
+  warp: 0, cur: 2, tool: 'shuttle',
+  press: 1, lift: 1, start: 0, dir: 1, cont: true, back: true, swap: false,
+  tex: true, nums: false, zoom: 1, floatLimit: 5, sel: 25,
+  colors: [], over: [], undo: [], redo: [], dirty: false
+};
+const mk = (r, c, v) => Array.from({ length: r }, () => new Array(c).fill(v));
+function seed() {
+  S.colors = mk(S.rows, S.cols, -1); S.over = mk(S.rows, S.cols, false);
+  for (let r = 0; r < 26; r++) for (let c = 0; c < S.cols; c++) {
+    let v = 0;
+    if (r < 2) v = 1;
+    else if (r === 6 || r === 7 || r === 20 || r === 21) v = 3;
+    if (r >= 2 && r < 24 && c >= 10 && c <= 13) v = 2;
+    if ((r === 13 || r === 14) && (c === 4 || c === 5 || c === 18 || c === 19)) v = 5;
+    S.colors[r][c] = v; S.over[r][c] = (r + c) % 2 === 0;
+  }
+}
+seed();
+
+/* ======================= 颜色工具 ======================= */
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgbHex = ([r, g, b]) => '#' + [r, g, b].map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+const mix = (h, t, a) => { const x = hexRgb(h), y = hexRgb(t); return rgbHex(x.map((v, i) => v + (y[i] - v) * a)); };
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ======================= 织面绘制 ======================= */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function drawWeave(ctx, o) {
+  const { x0, y0, cs, tex, preview, lock, sel } = o;
+  const warpHex = S.palette[S.warp].hex, line = tok('--line');
+  for (let r = 0; r < S.rows; r++) {
+    const y = y0 + (S.rows - 1 - r) * cs;
+    for (let c = 0; c < S.cols; c++) {
+      const x = x0 + c * cs;
+      let ci = S.colors[r][c], ov = S.over[r][c];
+      const pv = preview && preview.row === r && preview.map.get(c);
+      if (pv) { ci = pv.ci; ov = pv.over; }
+      if (ci < 0) {
+        ctx.fillStyle = warpHex; ctx.globalAlpha = .9;
+        ctx.fillRect(x + cs * .36, y, Math.max(1, cs * .28), cs); ctx.globalAlpha = 1;
+        if (cs > 9) { ctx.fillStyle = line; ctx.globalAlpha = .18; ctx.fillRect(x + cs * .36, y, 1, cs); ctx.globalAlpha = 1; }
+        continue;
+      }
+      const col = S.palette[ci] ? S.palette[ci].hex : '#999999';
+      if (!tex || cs < 5) { ctx.fillStyle = col; ctx.fillRect(x, y, cs + .5, cs + .5); continue; }
+      ctx.fillStyle = mix(col, '#000000', .28); ctx.fillRect(x, y, cs, cs);
+      if (ov) {
+        ctx.fillStyle = col; rr(ctx, x + .5, y + cs * .12, cs - 1, cs * .76, cs * .32); ctx.fill();
+        ctx.fillStyle = mix(col, '#FFFFFF', .35); ctx.fillRect(x + cs * .2, y + cs * .26, cs * .6, Math.max(1, cs * .1));
+      } else {
+        ctx.fillStyle = col; ctx.fillRect(x, y + cs * .16, cs, cs * .68);
+        ctx.fillStyle = warpHex; rr(ctx, x + cs * .3, y + .5, cs * .4, cs - 1, cs * .2); ctx.fill();
+        ctx.fillStyle = mix(warpHex, '#000000', .25); ctx.fillRect(x + cs * .62, y + cs * .1, Math.max(1, cs * .06), cs * .8);
+      }
+    }
+  }
+  const gw = S.cols * cs;
+  if (sel != null && sel >= 0) {
+    const y = y0 + (S.rows - 1 - sel) * cs;
+    ctx.strokeStyle = tok('--accent'); ctx.lineWidth = Math.max(1.5, cs * .1); ctx.setLineDash([]);
+    ctx.strokeRect(x0 - 1, y - 1, gw + 2, cs + 2);
+  }
+  if (lock != null) {
+    const y = y0 + (S.rows - 1 - lock) * cs;
+    ctx.fillStyle = tok('--accent'); ctx.globalAlpha = .16; ctx.fillRect(0, y, ctx.canvas.width, cs); ctx.globalAlpha = 1;
+    ctx.strokeStyle = tok('--accent'); ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+    ctx.strokeRect(x0 - 3, y - 3, gw + 6, cs + 6); ctx.setLineDash([]);
+  }
+}
+
+/* 工作台上的织布机：同一张草稿 */
+function drawLoomObj() {
+  const cv = $('#loomCanvas'), k = Math.min(3, (devicePixelRatio || 1) * 2);
+  const W = 430, H = 392; cv.width = W * k; cv.height = H * k;
+  const ctx = cv.getContext('2d'); ctx.scale(k, k); ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = tok('--well'); rr(ctx, 0, 0, W, H, 10); ctx.fill();
+  const cs = Math.min(W / S.cols, (H - 44) / S.rows);
+  const gw = cs * S.cols, gh = cs * S.rows, x0 = (W - gw) / 2, y0 = H - gh;
+  const warp = S.palette[S.warp].hex, step = Math.max(1, Math.ceil(S.cols / 70));
+  ctx.strokeStyle = warp; ctx.lineWidth = Math.max(1, cs * .3);
+  for (let c = 0; c < S.cols; c += step) { const x = x0 + c * cs + cs / 2; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y0); ctx.stroke(); }
+  ctx.strokeStyle = tok('--line'); ctx.globalAlpha = .25; ctx.lineWidth = .8;
+  for (let c = 0; c < S.cols; c += step) { const x = x0 + c * cs + cs / 2 + cs * .15; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y0); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  drawWeave(ctx, { x0, y0, cs, tex: true });
+}
+
+/* 草稿纸上的缩略图（平面配色） */
+function drawThumb() {
+  const cv = $('#draftThumb'), k = 2, W = 180, H = 240; cv.width = W * k; cv.height = H * k;
+  const ctx = cv.getContext('2d'); ctx.scale(k, k); ctx.clearRect(0, 0, W, H);
+  const cs = Math.min(W / S.cols, H / S.rows), gw = cs * S.cols, gh = cs * S.rows;
+  const x0 = (W - gw) / 2, y0 = (H - gh) / 2;
+  ctx.fillStyle = tok('--paper-2'); ctx.fillRect(x0, y0, gw, gh);
+  drawWeave(ctx, { x0, y0, cs, tex: false });
+  ctx.strokeStyle = tok('--line'); ctx.globalAlpha = .18; ctx.lineWidth = .6;
+  if (cs > 4) { for (let c = 0; c <= S.cols; c++) { ctx.beginPath(); ctx.moveTo(x0 + c * cs, y0); ctx.lineTo(x0 + c * cs, y0 + gh); ctx.stroke(); }
+    for (let r = 0; r <= S.rows; r++) { ctx.beginPath(); ctx.moveTo(x0, y0 + r * cs); ctx.lineTo(x0 + gw, y0 + r * cs); ctx.stroke(); } }
+  ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.strokeStyle = tok('--line'); ctx.strokeRect(x0, y0, gw, gh);
+}
+
+/* 尺子 */
+function drawRuler() {
+  const svg = $('#rulerArt');
+  let s = '<rect x="1.5" y="1.5" width="467" height="49" rx="8" fill="var(--wood)" stroke="var(--line)" stroke-width="3"/>';
+  for (let i = 0; i <= 44; i++) { const x = 14 + i * 10, h = i % 10 === 0 ? 20 : i % 5 === 0 ? 14 : 8; s += `<path d="M${x} 3v${h}" stroke="var(--line)" stroke-width="${i % 10 ? 1.4 : 2.2}"/>`;
+    if (i % 10 === 0) s += `<text x="${x + 3}" y="42" font-size="12" font-family="JetBrains Mono, monospace" fill="var(--line)">${i}</text>`; }
+  svg.innerHTML = s;
+  $('#rulerTag').textContent = `${fmt(S.wCm)} × ${fmt(S.hCm)} cm`;
+}
+const fmt = n => (Math.round(n * 10) / 10).toString();
+
+/* ======================= 工作台布局与镜头 ======================= */
+const LAYOUT = {
+  land: { w: 1220, h: 790, loom: [60, 100], ruler: [110, 690], yarn: [790, 70], draft: [800, 400], note: [596, 626] },
+  port: { w: 800, h: 1250, loom: [90, 80], ruler: [165, 668], yarn: [40, 790], draft: [430, 790], note: [70, 1110] }
+};
+const SIZE = { loom: [620, 560], ruler: [470, 52], yarn: [370, 270], draft: [340, 330] };
+const stage = $('#stage'), world = $('#world');
+let L = LAYOUT.land, view = 'home';
+
+function layout() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  L = W / H < .92 ? LAYOUT.port : LAYOUT.land;
+  world.style.width = L.w + 'px'; world.style.height = L.h + 'px';
+  const place = (el, p) => { el.style.left = p[0] + 'px'; el.style.top = p[1] + 'px'; };
+  place($('#objLoom'), L.loom); place($('#objRuler'), L.ruler); place($('#objYarn'), L.yarn);
+  place($('#objDraft'), L.draft); place($('#note'), L.note);
+  const th = $('#thread'); th.setAttribute('width', L.w); th.setAttribute('height', L.h); th.setAttribute('viewBox', `0 0 ${L.w} ${L.h}`);
+  drawThread();
+  world.classList.add('instant'); camera(view); void world.offsetWidth; world.classList.remove('instant');
+}
+function drawThread() {
+  const sx = L.yarn[0] + 90, sy = L.yarn[1] + 84, ex = L.loom[0] + 590, ey = L.loom[1] + 450;
+  const port = L === LAYOUT.port;
+  const d = port ? `M${sx} ${sy} C ${sx + 40} ${sy - 140}, ${ex + 120} ${ey + 120}, ${ex} ${ey}`
+                 : `M${sx} ${sy} C ${sx - 170} ${sy + 30}, ${ex + 170} ${ey - 30}, ${ex} ${ey}`;
+  $('#threadPath').setAttribute('d', d); $('#threadUnder').setAttribute('d', d);
+  $('#threadPath').style.stroke = S.palette[S.cur].hex;
+}
+function camera(name) {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  let x, y, w, h, pad;
+  if (name === 'home') { x = 0; y = 0; w = L.w; h = L.h; pad = Math.min(W, H) < 500 ? 10 : 28; }
+  else { const p = L[name], s = SIZE[name]; x = p[0]; y = p[1]; w = s[0]; h = s[1]; pad = -Math.min(w, h) * .12; }
+  const sc = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h);
+  const tx = W / 2 - (x + w / 2) * sc, ty = H / 2 - (y + h / 2) * sc;
+  world.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
+}
+
+const NAMES = { loom: '织布机', yarn: '毛线', draft: '草稿' };
+function go(name, opts = {}) {
+  if (!['home', 'loom', 'yarn', 'draft'].includes(name)) name = 'home';
+  if (name === view) { if (opts.sheet) openSheet(); return; }
+  const from = view; view = name;
+  $$('.scene.on').forEach(s => s.classList.remove('on'));
+  closeSheet();
+  $$('.obj').forEach(o => o.classList.toggle('target', o.dataset.go === name && !o.dataset.sheet));
+  stage.classList.toggle('focused', name !== 'home');
+  camera(name);
+  $('#backBtn').hidden = name === 'home';
+  $('#crumbSep').hidden = name === 'home'; $('#crumbHere').textContent = NAMES[name] || '';
+  try { history.replaceState(null, '', name === 'home' ? location.pathname : '#' + name); } catch (e) {}
+  if (name === 'home') { setTimeout(() => (from && $(`[data-go="${from}"].obj`))?.focus({ preventScroll: true }), reduce ? 0 : 400); return; }
+  const delay = reduce ? 0 : (from === 'home' ? 430 : 520);
+  setTimeout(() => { if (view !== name) return; const sc = $('#scene-' + name); sc.classList.add('on'); sc.scrollTop = 0; refreshScene(); if (opts.sheet) openSheet(); }, delay);
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (!g) return;
+  go(g.dataset.go, { sheet: !!g.dataset.sheet });
+});
+$('#backBtn').addEventListener('click', () => go('home'));
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if ($('#sizeScrim').classList.contains('on')) closeSheet(); else if (view !== 'home') go('home'); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && view === 'loom' && !/INPUT/.test(document.activeElement.tagName)) { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+});
+
+/* ======================= 编辑与撤销 ======================= */
+const snap = () => ({ cols: S.cols, rows: S.rows, colors: S.colors.map(r => r.slice()), over: S.over.map(r => r.slice()) });
+function push() { S.undo.push(snap()); if (S.undo.length > 60) S.undo.shift(); S.redo = []; markDirty(); }
+function restore(s) { S.cols = s.cols; S.rows = s.rows; S.colors = s.colors; S.over = s.over; S.sel = clamp(S.sel, 0, S.rows - 1); }
+function undo() { if (!S.undo.length) return toast('没有可以撤销的步骤'); S.redo.push(snap()); restore(S.undo.pop()); markDirty(); renderAll(); }
+function redo() { if (!S.redo.length) return toast('没有可以重做的步骤'); S.undo.push(snap()); restore(S.redo.pop()); markDirty(); renderAll(); }
+$('#undoBtn').addEventListener('click', undo); $('#redoBtn').addEventListener('click', redo);
+function markDirty() { S.dirty = true; const c = $('#saveChip'); c.classList.add('dirty'); $('#saveTxt').textContent = '有改动 · 未保存'; }
+
+/* 穿梭规则：第 k 步在上还是在下（原型示意） */
+const stepOver = k => { const n = S.press + S.lift; return ((S.start + k) % n + n) % n < S.press; };
+function weaveSegment(row, c0, c1) {
+  const dir = c1 >= c0 ? 1 : -1, map = new Map();
+  let k0 = 0;
+  if (S.cont) { const prev = c0 - dir; if (prev >= 0 && prev < S.cols && S.colors[row][prev] >= 0) {
+      for (let k = 0; k < S.press + S.lift; k++) if (stepOver(k) === S.over[row][prev]) { k0 = k + 1; break; } } }
+  for (let c = c0, k = k0; dir > 0 ? c <= c1 : c >= c1; c += dir, k++) map.set(c, { ci: S.cur, over: stepOver(k) });
+  return { row, map, dir };
+}
+function commitSegment(seg) {
+  push();
+  seg.map.forEach((v, c) => { S.colors[seg.row][c] = v.ci; S.over[seg.row][c] = v.over; });
+  setDir(seg.dir);
+  if (S.back) { setDir(-seg.dir); if (S.swap) { S.start = (S.start + S.press) % (S.press + S.lift); $('#pStart').value = S.start + 1; } }
+  S.sel = clamp(seg.row + 1, 0, S.rows - 1);
+  renderAll();
+}
+
+/* ======================= 织布机场景 ======================= */
+const vp = $('#viewport'), wc = $('#weaveCanvas');
+let geom = { cs: 18, m: 8 }, preview = null, lockRow = null;
+function drawScene() {
+  const dpr = devicePixelRatio || 1;
+  const cs = Math.max(3, Math.round(18 * S.zoom)), m = S.nums ? 28 : 10;
+  geom = { cs, m };
+  const W = S.cols * cs + m * 2, H = S.rows * cs + m * 2;
+  wc.width = W * dpr; wc.height = H * dpr; wc.style.width = W + 'px'; wc.style.height = H + 'px';
+  const ctx = wc.getContext('2d'); ctx.scale(dpr, dpr);
+  ctx.fillStyle = tok('--well'); ctx.fillRect(0, 0, W, H);
+  drawWeave(ctx, { x0: m, y0: m, cs, tex: S.tex, preview, lock: lockRow, sel: lockRow == null ? S.sel : null });
+  if (S.nums) {
+    ctx.fillStyle = tok('--muted'); ctx.font = `500 ${Math.min(11, cs * .7)}px JetBrains Mono, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const every = cs < 12 ? 5 : 1;
+    for (let c = 0; c < S.cols; c++) if ((c + 1) % every === 0 || c === 0) { ctx.fillText(c + 1, m + c * cs + cs / 2, m / 2); ctx.fillText(c + 1, m + c * cs + cs / 2, H - m / 2); }
+    for (let r = 0; r < S.rows; r++) if ((r + 1) % every === 0 || r === 0) ctx.fillText(r + 1, m / 2, m + (S.rows - 1 - r) * cs + cs / 2);
+  }
+  $('#zoomLabel').textContent = Math.round(S.zoom * 100) + '%';
+  $('#sizeLabel').textContent = `${S.cols} 根 × ${S.rows} 行 · ${fmt(S.wCm)} × ${fmt(S.hCm)} cm`;
+}
+function cellAt(e) {
+  const b = wc.getBoundingClientRect();
+  const c = Math.floor((e.clientX - b.left - geom.m) / geom.cs), rv = Math.floor((e.clientY - b.top - geom.m) / geom.cs);
+  return { c: clamp(c, 0, S.cols - 1), r: clamp(S.rows - 1 - rv, 0, S.rows - 1), inside: c >= 0 && c < S.cols && rv >= 0 && rv < S.rows };
+}
+function flood(r, c, to) {
+  const from = S.colors[r][c]; if (from === to) return;
+  const st = [[r, c]];
+  while (st.length) { const [y, x] = st.pop(); if (y < 0 || x < 0 || y >= S.rows || x >= S.cols || S.colors[y][x] !== from) continue;
+    S.colors[y][x] = to; if (from < 0) S.over[y][x] = (y + x) % 2 === 0; st.push([y + 1, x], [y - 1, x], [y, x + 1], [y, x - 1]); }
+}
+
+const ring = $('#pressRing'), shut = $('#shuttleCursor');
+let ptr = null;
+wc.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const p = cellAt(e); if (!p.inside) return;
+  wc.setPointerCapture(e.pointerId);
+  ptr = { id: e.pointerId, x: e.clientX, y: e.clientY, cell: p, armed: false, moved: false, t0: performance.now() };
+  if (S.tool === 'shuttle') {
+    ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px'; ring.classList.add('show'); ring.classList.remove('armed');
+    const tick = () => { if (!ptr || ptr.armed || ptr.cancel) return; const k = clamp((performance.now() - ptr.t0) / 350, 0, 1); ring.style.setProperty('--p', k);
+      if (k >= 1) arm(); else ptr.raf = requestAnimationFrame(tick); };
+    ptr.raf = requestAnimationFrame(tick);
+  } else if (S.tool === 'brush' || S.tool === 'unpick') { push(); paintAt(p); }
+  else if (S.tool === 'fill') { push(); flood(p.r, p.c, S.cur); renderAll(); ptr = null; }
+  else if (S.tool === 'flip') { if (S.colors[p.r][p.c] < 0) { toast('这里还没有织入纬线'); ptr = null; return; } push(); S.over[p.r][p.c] = !S.over[p.r][p.c]; S.sel = p.r; renderAll(); ptr = null; }
+});
+function arm() {
+  ptr.armed = true; ring.classList.add('armed'); setTimeout(() => ring.classList.remove('show'), 260);
+  lockRow = ptr.cell.r; S.sel = lockRow; shut.classList.add('show'); moveShuttle(ptr.x);
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
+  preview = weaveSegment(lockRow, ptr.cell.c, ptr.cell.c); drawScene(); rowDiagram();
+}
+function moveShuttle(x) { const b = wc.getBoundingClientRect(); shut.style.left = x + 'px'; shut.style.top = (b.top + geom.m + (S.rows - 1 - lockRow) * geom.cs + geom.cs / 2) + 'px'; }
+function paintAt(p) {
+  if (!p.inside) return;
+  if (S.tool === 'brush') { if (S.colors[p.r][p.c] < 0) S.over[p.r][p.c] = (p.r + p.c) % 2 === 0; S.colors[p.r][p.c] = S.cur; }
+  else S.colors[p.r][p.c] = -1;
+  S.sel = p.r; drawScene(); rowDiagram();
+}
+wc.addEventListener('pointermove', e => {
+  if (!ptr || e.pointerId !== ptr.id) return;
+  const dist = Math.hypot(e.clientX - ptr.x, e.clientY - ptr.y);
+  if (S.tool === 'shuttle') {
+    if (!ptr.armed) { if (dist > 8) { ptr.cancel = true; ptr.moved = true; ring.classList.remove('show'); } return; }
+    const b = wc.getBoundingClientRect();
+    const c = clamp(Math.floor((e.clientX - b.left - geom.m) / geom.cs), 0, S.cols - 1);
+    preview = weaveSegment(lockRow, ptr.cell.c, c); moveShuttle(e.clientX); drawScene();
+  } else if (S.tool === 'brush' || S.tool === 'unpick') paintAt(cellAt(e));
+});
+function endPtr(e, cancelled) {
+  if (!ptr || e.pointerId !== ptr.id) return;
+  cancelAnimationFrame(ptr.raf); ring.classList.remove('show'); shut.classList.remove('show');
+  if (S.tool === 'shuttle') {
+    if (ptr.armed && preview && !cancelled) { const seg = preview; preview = null; lockRow = null; commitSegment(seg);
+      toast(`第 ${seg.row + 1} 行织入经线 ${Math.min(...seg.map.keys()) + 1}–${Math.max(...seg.map.keys()) + 1}`); }
+    else if (!ptr.armed && !ptr.moved && !cancelled) { S.sel = ptr.cell.r; drawScene(); rowDiagram(); }
+    preview = null; lockRow = null; drawScene();
+  } else if (S.tool === 'brush' || S.tool === 'unpick') renderAll();
+  ptr = null;
+}
+wc.addEventListener('pointerup', e => endPtr(e, false));
+wc.addEventListener('pointercancel', e => endPtr(e, true));
+
+$$('.tool[data-tool]').forEach(b => b.addEventListener('click', () => {
+  S.tool = b.dataset.tool; $$('.tool[data-tool]').forEach(t => t.setAttribute('aria-pressed', t === b));
+  vp.classList.toggle('gesture', true);
+}));
+$('#curSwatch').addEventListener('click', () => go('yarn'));
+const setZoom = z => { S.zoom = clamp(z, .25, 3); drawScene(); };
+$('#zoomIn').addEventListener('click', () => setZoom(S.zoom * 1.25));
+$('#zoomOut').addEventListener('click', () => setZoom(S.zoom / 1.25));
+$('#zoomFit').addEventListener('click', () => { const w = vp.clientWidth - 24, h = Math.min(vp.clientHeight || 500, innerHeight * .62) - 24; setZoom(Math.min(w / (S.cols * 18), h / (S.rows * 18))); });
+vp.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); setZoom(S.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
+
+/* 穿梭规则面板 */
+function setDir(d) { S.dir = d; $$('[data-dir]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.dir === d)); }
+$$('[data-dir]').forEach(b => b.addEventListener('click', () => setDir(+b.dataset.dir)));
+function ruleVis() {
+  const n = S.press + S.lift; $('#pStart').max = n; S.start = clamp(S.start, 0, n - 1); $('#pStart').value = S.start + 1;
+  let h = ''; for (let k = 0; k < Math.min(16, n * 3); k++) h += `<span class="${stepOver(k) ? 'o' : 'u'}"></span>`;
+  $('#ruleVis').innerHTML = h;
+}
+const bindNum = (id, f) => $(id).addEventListener('change', e => { f(e.target); ruleVis(); });
+bindNum('#pPress', t => { S.press = clamp(+t.value || 1, 1, 12); t.value = S.press; });
+bindNum('#pLift', t => { S.lift = clamp(+t.value || 1, 1, 12); t.value = S.lift; });
+bindNum('#pStart', t => { S.start = clamp((+t.value || 1) - 1, 0, S.press + S.lift - 1); });
+$('#pCont').addEventListener('change', e => S.cont = e.target.checked);
+$('#pBack').addEventListener('change', e => S.back = e.target.checked);
+$('#pSwap').addEventListener('change', e => S.swap = e.target.checked);
+$('#dTex').addEventListener('change', e => { S.tex = e.target.checked; drawScene(); });
+$('#dNum').addEventListener('change', e => { S.nums = e.target.checked; drawScene(); });
+$('#dFloat').addEventListener('change', e => { S.floatLimit = clamp(+e.target.value || 5, 2, 40); e.target.value = S.floatLimit; rowDiagram(); });
+$('#rgGo').addEventListener('click', () => {
+  const r = clamp((+$('#rgRow').value || 1) - 1, 0, S.rows - 1);
+  let a = clamp((+$('#rgFrom').value || 1) - 1, 0, S.cols - 1), b = clamp((+$('#rgTo').value || 1) - 1, 0, S.cols - 1);
+  if (S.dir < 0) [a, b] = [Math.max(a, b), Math.min(a, b)]; else [a, b] = [Math.min(a, b), Math.max(a, b)];
+  commitSegment(weaveSegment(r, a, b)); toast(`第 ${r + 1} 行织入经线 ${Math.min(a, b) + 1}–${Math.max(a, b) + 1}`);
+});
+
+/* 逐行图解 */
+function rowDiagram() {
+  const r = S.sel, row = S.colors[r], ov = S.over[r];
+  $('#rowNo').textContent = r + 1; $('#rowTotal').textContent = '/ ' + S.rows;
+  const segs = []; let s = 0;
+  for (let c = 1; c <= S.cols; c++) if (c === S.cols || row[c] !== row[s]) { segs.push([s, c - 1, row[s]]); s = c; }
+  $('#segs').innerHTML = segs.map(([a, b, ci]) => ci < 0
+    ? `<span class="segchip" style="border-style:dashed"><i style="background:transparent;border-style:dashed"></i>未织 · 经 ${a + 1}–${b + 1}</span>`
+    : `<span class="segchip"><i style="background:${S.palette[ci].hex}"></i>${S.palette[ci].name} · 经 ${a + 1}–${b + 1}</span>`).join('');
+  const floats = []; let fs = 0;
+  for (let c = 1; c <= S.cols; c++) {
+    const brk = c === S.cols || row[c] < 0 || row[fs] < 0 || ov[c] !== ov[fs];
+    if (brk) { const len = c - fs; if (row[fs] >= 0 && len > S.floatLimit) floats.push([fs, c - 1, ov[fs]]); fs = c; }
+  }
+  const flSet = new Set(); floats.forEach(([a, b]) => { for (let c = a; c <= b; c++) flSet.add(c); });
+  $('#track').innerHTML = row.map((ci, c) => ci < 0 ? '<span class="n" title="经 ' + (c + 1) + '：未织"></span>'
+    : `<span class="${ov[c] ? 'o' : 'u'}${flSet.has(c) ? ' fl' : ''}" style="--c:${S.palette[ci].hex}" title="经 ${c + 1}：${ov[c] ? '上' : '下'}"></span>`).join('');
+  $('#floats').innerHTML = floats.map(([a, b, o]) => `<div class="warnline"><svg><use href="#i-warn"/></svg>浮线：经 ${a + 1}–${b + 1} 连续 ${b - a + 1} 根都在${o ? '上方' : '下方'}，实物可能松垂或勾线</div>`).join('');
+  const woven = row.filter(v => v >= 0).length;
+  $('#rowState').textContent = woven === 0 ? '这一行还没织' : woven === S.cols ? '整行已织' : `已织 ${woven} / ${S.cols} 根`;
+}
+$('#rowPrev').addEventListener('click', () => { S.sel = clamp(S.sel - 1, 0, S.rows - 1); drawScene(); rowDiagram(); });
+$('#rowNext').addEventListener('click', () => { S.sel = clamp(S.sel + 1, 0, S.rows - 1); drawScene(); rowDiagram(); });
+
+/* ======================= 织面尺寸 ======================= */
+function openSheet() {
+  $('#szW').value = S.wCm; $('#szH').value = S.hCm; $('#szC').value = S.cols; $('#szR').value = S.rows;
+  $('#dnW').value = S.denW; $('#dnH').value = S.denH;
+  $('#sizeScrim').classList.add('on'); setTimeout(() => $('#szW').focus(), 50);
+}
+function closeSheet() { $('#sizeScrim').classList.remove('on'); }
+$$('[data-sheet-open]').forEach(b => b.addEventListener('click', openSheet));
+$('#sizeCancel').addEventListener('click', closeSheet);
+$('#sizeScrim').addEventListener('click', e => { if (e.target.id === 'sizeScrim') closeSheet(); });
+$('#densCalc').addEventListener('click', () => {
+  const w = clamp(+$('#szW').value || 2, 2, 200), h = clamp(+$('#szH').value || 2, 2, 200);
+  const dw = +$('#dnW').value || 1, dh = +$('#dnH').value || 1;
+  $('#szC').value = clamp(Math.round(w * dw), 4, 240); $('#szR').value = clamp(Math.round(h * dh), 4, 600);
+  toast(`${fmt(w)} cm × ${dw} 根/cm ≈ ${$('#szC').value} 根；${fmt(h)} cm × ${dh} 行/cm ≈ ${$('#szR').value} 行`);
+});
+$('#sizeApply').addEventListener('click', () => {
+  const nc = clamp(Math.round(+$('#szC').value || 4), 4, 240), nr = clamp(Math.round(+$('#szR').value || 4), 4, 600);
+  const mode = $('input[name="rsz"]:checked').value;
+  push();
+  const oc = S.colors, oo = S.over, ocn = S.cols, orn = S.rows;
+  const C = mk(nr, nc, -1), O = mk(nr, nc, false);
+  for (let r = 0; r < nr; r++) for (let c = 0; c < nc; c++) {
+    if (mode === 'keep') { if (r < orn && c < ocn) { C[r][c] = oc[r][c]; O[r][c] = oo[r][c]; } }
+    else { const sr = Math.min(orn - 1, Math.floor(r * orn / nr)), sc = Math.min(ocn - 1, Math.floor(c * ocn / nc)); C[r][c] = oc[sr][sc]; O[r][c] = (r + c) % 2 === 0; }
+  }
+  S.cols = nc; S.rows = nr; S.colors = C; S.over = O;
+  S.wCm = clamp(+$('#szW').value || 2, 2, 200); S.hCm = clamp(+$('#szH').value || 2, 2, 200);
+  S.denW = +$('#dnW').value || S.denW; S.denH = +$('#dnH').value || S.denH;
+  S.sel = clamp(S.sel, 0, nr - 1); closeSheet(); renderAll();
+  toast(mode === 'scale' ? `已按比例缩放到 ${nc} × ${nr}，交织关系已重设为平纹` : `织面改为 ${nc} × ${nr}，原格子保留`);
+});
+
+/* ======================= 毛线场景 ======================= */
+function yarnScene() {
+  $('#ballGrid').innerHTML = S.palette.map((p, i) => `<button class="ballbtn" data-ball="${i}" aria-pressed="${i === S.pick}" aria-label="${p.name} ${p.hex}">
+    <span class="badges">${i === S.cur ? '<span class="badge w">纬</span>' : ''}${i === S.warp ? '<span class="badge">经</span>' : ''}</span>
+    <span class="b" style="background-color:${p.hex}"></span><span class="nm">${p.name}</span></button>`).join('');
+  const p = S.palette[S.pick];
+  $('#bigBall').style.backgroundColor = p.hex; $('#ballName').textContent = p.name; $('#ballHex').textContent = p.hex;
+  $('#useWeft').disabled = S.pick === S.cur; $('#useWeft').textContent = S.pick === S.cur ? '正在用作纬线' : '用作当前纬线';
+  $('#useWarp').disabled = S.pick === S.warp; $('#useWarp').textContent = S.pick === S.warp ? '已是经线颜色' : '设为经线颜色';
+  $('#yarnCount2').textContent = `${S.palette.length} / 24 色`;
+  $('#addColor').disabled = S.palette.length >= 24;
+}
+S.pick = S.cur;
+$('#ballGrid').addEventListener('click', e => { const b = e.target.closest('[data-ball]'); if (!b) return; S.pick = +b.dataset.ball; yarnScene(); });
+$('#useWeft').addEventListener('click', () => { S.cur = S.pick; renderAll(); toast(`纬线换成${S.palette[S.cur].name}`); });
+$('#useWarp').addEventListener('click', () => { S.warp = S.pick; markDirty(); renderAll(); toast(`经线颜色设为${S.palette[S.warp].name}`); });
+$('#addColor').addEventListener('click', () => {
+  if (S.palette.length >= 24) return toast('已经有 24 色，达到上限');
+  const hex = $('#newColor').value.toUpperCase(), name = $('#newName').value.trim() || `新线 ${S.palette.length + 1}`;
+  S.palette.push({ name, hex }); S.pick = S.palette.length - 1; $('#newName').value = ''; markDirty(); renderAll(); toast(`添加了${name}`);
+});
+
+/* 篮子里的线团：当前纬线永远在离织布机最近的位置 */
+function basket() {
+  const order = [S.cur, ...S.palette.map((_, i) => i).filter(i => i !== S.cur)];
+  $$('.ballspot').forEach((el, k) => { const i = order[k]; el.style.display = i == null ? 'none' : ''; if (i != null) el.style.backgroundColor = S.palette[i].hex; });
+  $('#yarnCount').textContent = S.palette.length + ' 色';
+  $('#curSwatch').style.backgroundColor = S.palette[S.cur].hex;
+  $('#curSwatch').title = `当前线色：${S.palette[S.cur].name}（点击去选线）`;
+}
+
+/* ======================= 草稿场景：图片转换（原型用的简化取色） ======================= */
+const D = { mode: 'fabric', fit: 'contain', k: 6, blur: 2, ignore: true, keep: false, img: null, result: null };
+function makeSample() {
+  const c = document.createElement('canvas'); c.width = 360; c.height = 480; const x = c.getContext('2d');
+  const band = (y0, y1, col) => { x.fillStyle = col; x.fillRect(0, y0, 360, y1 - y0); };
+  band(0, 480, '#E6DCC6'); band(0, 30, '#2D3A66'); band(450, 480, '#2D3A66');
+  band(80, 106, '#DDAE3E'); band(366, 392, '#DDAE3E');
+  x.fillStyle = '#2E56B8'; x.fillRect(150, 30, 60, 390);
+  let seedN = 7; const rnd = () => (seedN = (seedN * 16807) % 2147483647) / 2147483647;
+  for (let yy = 0; yy < 480; yy += 5) for (let xx = 0; xx < 360; xx += 5) { x.fillStyle = `rgba(${rnd() > .5 ? '255,255,255' : '0,0,0'},${.05 + rnd() * .1})`; x.fillRect(xx + ((yy / 5) % 2) * 2, yy, 3, 4); }
+  x.strokeStyle = '#FAFAF5'; x.lineWidth = 3; x.setLineDash([9, 6]); x.beginPath(); x.moveTo(30, 300); x.bezierCurveTo(120, 250, 220, 330, 330, 220); x.stroke();
+  const g = x.createRadialGradient(330, 470, 10, 330, 470, 300); g.addColorStop(0, 'rgba(20,20,40,.35)'); g.addColorStop(1, 'rgba(20,20,40,0)'); x.fillStyle = g; x.fillRect(0, 0, 360, 480);
+  return c;
+}
+function showSrc() {
+  const img = D.img, cv = $('#srcCanvas'), iw = img.width, ih = img.height, s = Math.min(1, 640 / Math.max(iw, ih));
+  cv.width = Math.round(iw * s); cv.height = Math.round(ih * s); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+  const pc = $('#photoThumb'), px = pc.getContext('2d'); const sc = Math.max(pc.width / iw, pc.height / ih);
+  px.clearRect(0, 0, pc.width, pc.height); px.drawImage(img, (pc.width - iw * sc) / 2, (pc.height - ih * sc) / 2, iw * sc, ih * sc);
+}
+function convert() {
+  const img = D.img, cols = S.cols, iw = img.width, ih = img.height;
+  const rows = D.keep ? clamp(Math.round(cols * (ih / iw) * (S.denH / S.denW)), 4, 600) : S.rows;
+  const k = 6, W = cols * k, H = rows * k, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d', { willReadFrequently: true });
+  let sx = 0, sy = 0, sw = iw, sh = ih, dx = 0, dy = 0, dw = W, dh = H;
+  if (D.fit === 'cover') { const a = W / H; if (iw / ih > a) { sw = ih * a; sx = (iw - sw) / 2; } else { sh = iw / a; sy = (ih - sh) / 2; } }
+  else { const s = Math.min(W / iw, H / ih); dw = iw * s; dh = ih * s; dx = (W - dw) / 2; dy = (H - dh) / 2;
+    const e = document.createElement('canvas'); e.width = e.height = 1; const ex = e.getContext('2d'); ex.drawImage(img, 0, 0, 1, 1); const d = ex.getImageData(0, 0, 1, 1).data;
+    x.fillStyle = `rgb(${d[0]},${d[1]},${d[2]})`; x.fillRect(0, 0, W, H); }
+  const blur = D.mode === 'flat' ? 0 : D.blur * k * .3;
+  if (blur) x.filter = `blur(${blur}px)`;
+  x.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); x.filter = 'none';
+  const px = x.getImageData(0, 0, W, H).data, cells = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    let all = [0, 0, 0, 0], dark = [0, 0, 0, 0];
+    for (let yy = 0; yy < k; yy++) for (let xx = 0; xx < k; xx++) {
+      const i = ((r * k + yy) * W + c * k + xx) * 4, R = px[i], G = px[i + 1], B = px[i + 2];
+      const mx = Math.max(R, G, B), mn = Math.min(R, G, B), light = (mx + mn) / 510 > .86 && (mx - mn) < 40;
+      all[0] += R; all[1] += G; all[2] += B; all[3]++; if (!light) { dark[0] += R; dark[1] += G; dark[2] += B; dark[3]++; }
+    }
+    const use = D.ignore && dark[3] > all[3] * .4 ? dark : all;
+    cells.push([use[0] / use[3], use[1] / use[3], use[2] / use[3]]);
+  }
+  const K = Math.min(D.k, cells.length), cent = [cells[0].slice()], d2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+  while (cent.length < K) { let best = 0, bi = 0; cells.forEach((p, i) => { const m = Math.min(...cent.map(q => d2(p, q))); if (m > best) { best = m; bi = i; } }); cent.push(cells[bi].slice()); }
+  let lab = new Array(cells.length).fill(0);
+  for (let it = 0; it < 10; it++) {
+    lab = cells.map(p => { let b = 0, bd = Infinity; cent.forEach((q, j) => { const d = d2(p, q); if (d < bd) { bd = d; b = j; } }); return b; });
+    const sum = cent.map(() => [0, 0, 0, 0]); cells.forEach((p, i) => { const s = sum[lab[i]]; s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; s[3]++; });
+    sum.forEach((s, j) => { if (s[3]) cent[j] = [s[0] / s[3], s[1] / s[3], s[2] / s[3]]; });
+  }
+  const idx = mk(rows, cols, 0); cells.forEach((_, i) => { const r = Math.floor(i / cols), c = i % cols; idx[rows - 1 - r][c] = lab[i]; });
+  D.result = { cols, rows, pal: cent.map(rgbHex), idx };
+  drawPreview();
+}
+function drawPreview() {
+  const { cols, rows, pal, idx } = D.result, cs = Math.max(2, Math.floor(Math.min(320 / cols, 320 / rows)));
+  const cv = $('#pvCanvas'); cv.width = cols * cs; cv.height = rows * cs; const x = cv.getContext('2d');
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { x.fillStyle = pal[idx[r][c]]; x.fillRect(c * cs, (rows - 1 - r) * cs, cs, cs); }
+  if (cs >= 5) { x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 1; for (let c = 1; c < cols; c++) { x.beginPath(); x.moveTo(c * cs + .5, 0); x.lineTo(c * cs + .5, rows * cs); x.stroke(); } for (let r = 1; r < rows; r++) { x.beginPath(); x.moveTo(0, r * cs + .5); x.lineTo(cols * cs, r * cs + .5); x.stroke(); } }
+  $('#pvSize').textContent = `${cols} × ${rows}` + (rows !== S.rows ? `（行数将改为 ${rows}）` : '');
+  $('#pvPal').innerHTML = pal.map(h => `<i style="background:${h}" title="${h}"></i>`).join('');
+}
+$('#applyBtn').addEventListener('click', () => {
+  const R = D.result; if (!R) return;
+  push();
+  const map = R.pal.map(h => {
+    let bi = -1, bd = Infinity; S.palette.forEach((p, i) => { const d = Math.sqrt(hexRgb(p.hex).reduce((s, v, j) => s + (v - hexRgb(h)[j]) ** 2, 0)); if (d < bd) { bd = d; bi = i; } });
+    if (bd < 22) return bi;
+    if (S.palette.length < 24) { S.palette.push({ name: `取色 ${S.palette.length + 1}`, hex: h }); return S.palette.length - 1; }
+    return bi;
+  });
+  if (R.rows !== S.rows) S.hCm = Math.round(R.rows / S.denH * 10) / 10;
+  S.cols = R.cols; S.rows = R.rows;
+  S.colors = R.idx.map(row => row.map(v => map[v])); S.over = mk(S.rows, S.cols, false).map((row, r) => row.map((_, c) => (r + c) % 2 === 0));
+  S.sel = clamp(S.sel, 0, S.rows - 1);
+  renderAll(); $('#appliedNote').classList.add('on');
+  toast('已应用为配色草稿。交织关系是默认平纹，需要在织布机上再调整。');
+});
+$$('[data-mode]').forEach(b => b.addEventListener('click', () => { D.mode = b.dataset.mode; $$('[data-mode]').forEach(t => t.setAttribute('aria-pressed', t === b)); convert(); }));
+$$('[data-fit]').forEach(b => b.addEventListener('click', () => { D.fit = b.dataset.fit; $$('[data-fit]').forEach(t => t.setAttribute('aria-pressed', t === b)); convert(); }));
+$('#kIn').addEventListener('input', e => { D.k = +e.target.value; $('#kVal').textContent = D.k; convert(); });
+$('#blurIn').addEventListener('input', e => { D.blur = +e.target.value; $('#blurVal').textContent = ['关', '低', '中', '高'][D.blur]; convert(); });
+$('#ignoreLight').addEventListener('change', e => { D.ignore = e.target.checked; convert(); });
+$('#keepRatio').addEventListener('change', e => { D.keep = e.target.checked; convert(); });
+function loadFile(f) {
+  if (!f || !/image\/(jpeg|png|webp)/.test(f.type)) return toast('请选择 JPG、PNG 或 WebP 图片');
+  const fr = new FileReader(); fr.onload = () => { const im = new Image(); im.onload = () => { D.img = im; $('#demoFlag').textContent = f.name; showSrc(); convert(); $('#appliedNote').classList.remove('on'); }; im.onerror = () => toast('这张图片读不出来，换一张试试'); im.src = fr.result; };
+  fr.readAsDataURL(f);
+}
+$('#fileIn').addEventListener('change', e => loadFile(e.target.files[0]));
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
+$$('[data-proto]').forEach(b => b.addEventListener('click', () => toast(`「${b.dataset.proto}」的位置在这里。原型不读写文件，接入功能版本后生效。`)));
+
+/* ======================= 杂项 ======================= */
+let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
+let fitted = false;
+function refreshScene() { if (view === 'loom') { if (!fitted && vp.clientWidth && S.cols * 18 + 20 > vp.clientWidth) { fitted = true; $('#zoomFit').click(); } drawScene(); rowDiagram(); ruleVis(); } if (view === 'yarn') { S.pick = S.pick ?? S.cur; yarnScene(); } if (view === 'draft' && !D.result) convert(); }
+function renderAll() { drawLoomObj(); drawThumb(); drawRuler(); basket(); drawThread(); refreshScene(); }
+
+D.img = makeSample(); showSrc();
+layout(); renderAll(); ruleVis();
+new ResizeObserver(() => layout()).observe(stage);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderAll);
+new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+const h0 = location.hash.slice(1); if (NAMES[h0]) setTimeout(() => go(h0), 300);
+})();
+</script>
