@@ -29,7 +29,7 @@
   --bulb: #F6E7C4;
   --glow: 0;
   --caveat: #FBE6D6;
-  --scrim: rgba(237, 230, 211, .93);
+  --scrim: rgba(230, 211, 174, .96);
   --shadow: rgba(84, 62, 30, .14);
 
   --f-display: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -48,7 +48,7 @@
     --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
     --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
     --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-    --caveat: #43342A; --scrim: rgba(36, 34, 31, .94); --shadow: rgba(0, 0, 0, .35);
+    --caveat: #43342A; --scrim: rgba(90, 70, 50, .96); --shadow: rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
@@ -57,12 +57,12 @@
   --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
   --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
   --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-  --caveat: #43342A; --scrim: rgba(36, 34, 31, .94); --shadow: rgba(0, 0, 0, .35);
+  --caveat: #43342A; --scrim: rgba(90, 70, 50, .96); --shadow: rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 
 html, body { height: 100%; }
-body { background: var(--wall); color: var(--ink); font-family: var(--f-body); font-size: var(--t-md); overflow: hidden; transition: background-color .6s; }
+body { background: var(--desk); color: var(--ink); font-family: var(--f-body); font-size: var(--t-md); overflow: hidden; transition: background-color .6s; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; color: inherit; }
@@ -72,7 +72,7 @@ button, input, select { font: inherit; color: inherit; }
 .app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
 
 /* ---------- 顶栏 ---------- */
-.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--wall); position: relative; z-index: 20; transition: background-color .6s; }
+.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--desk); position: relative; z-index: 20; transition: background-color .6s; }
 .logo { display: flex; align-items: baseline; gap: 8px; font-family: var(--f-display); font-size: 26px; white-space: nowrap; }
 .logo small { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
 .crumb { display: flex; align-items: center; gap: 6px; font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
@@ -114,16 +114,10 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .stage { position: relative; overflow: hidden; min-height: 0; }
 .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; transition: transform var(--cam-ms) var(--ease-cam); }
 .world.instant { transition: none; }
-.wall, .floor, .desk { position: absolute; left: -3000px; right: -3000px; }
+.desk { position: absolute; left: -3000px; right: -3000px; top: -3000px; bottom: -3000px; background: var(--desk); transition: background-color .6s; }
+.desk svg { position: absolute; left: 3000px; top: 3000px; overflow: visible; }
 .grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.wall { top: -3000px; background: var(--wall); transition: background-color .6s; }
-.desk { background: var(--desk); transition: background-color .6s; overflow: hidden; }
-.desk svg { position: absolute; left: 3000px; top: 0; overflow: visible; }
-.desk-front { position: absolute; left: -3000px; right: -3000px; background:
-  repeating-linear-gradient(180deg, var(--desk-edge) 0 5px, var(--desk-2) 5px 7px, var(--desk-edge) 7px 11px); transition: background .6s; }
-.desk-front .drawer-cut { position: absolute; top: 18px; height: 22px; width: 240px; border-radius: 0 0 22px 22px; background: var(--floor); opacity: .85; }
-.floor { bottom: -3000px; background: var(--floor); transition: background-color .6s; }
 .glow { position: absolute; width: 1500px; height: 1100px; margin: -360px 0 0 -750px; pointer-events: none; opacity: var(--glow); transition: opacity .8s;
   background: radial-gradient(closest-side, rgba(255, 176, 92, .32), rgba(255, 150, 70, .12) 55%, transparent); mix-blend-mode: screen; z-index: 0; }
 .stage.focused .obj:not(.target) { opacity: .28; }
@@ -132,8 +126,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .obj { position: absolute; border: 0; padding: 0; background: none; cursor: pointer; transform: rotate(var(--rot, 0deg)); transition: transform .35s var(--ease-pop), opacity var(--cam-ms); }
 .obj:hover { transform: rotate(var(--rot, 0deg)) translateY(-6px); }
 .obj:focus-visible { outline-offset: 12px; border-radius: 20px; }
-.fuzz { filter: url(#fuzz) drop-shadow(0 8px 0 var(--shadow)); }
-.ballspot, .draft .sheet-paper, .draft .photo { filter: drop-shadow(0 8px 0 var(--shadow)); }
+.crayon { filter: url(#crayon); }
 .obj svg.art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 
 /* 标注：带圈编号 + 虚线引线 + 打字机小字，取自手绘笔记的标注方式 */
@@ -152,17 +145,14 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .ruler { width: 470px; height: 52px; z-index: 3; --rot: 1.5deg; }
 .ruler .size { position: absolute; right: -6px; top: -34px; font-family: var(--f-type); font-weight: 700; font-size: 22px; transform: rotate(-2deg); }
 .yarn { width: 370px; height: 280px; z-index: 4; }
-.ballspot { position: absolute; border-radius: 50%; transition: background-color .5s, transform .45s var(--ease-pop);
-  background-image:
-    radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%),
-    repeating-linear-gradient(-34deg, transparent 0 7px, rgba(0,0,0,.14) 7px 9px),
-    repeating-linear-gradient(52deg, transparent 0 11px, rgba(255,255,255,.12) 11px 12px),
-    radial-gradient(circle at 60% 70%, transparent 55%, rgba(0,0,0,.18) 72%); }
-.yarn:hover .ballspot:nth-of-type(odd) { transform: rotate(-16deg) translateY(-5px); }
-.yarn:hover .ballspot:nth-of-type(even) { transform: rotate(12deg) translateY(-2px); }
+.ball { transition: transform .45s var(--ease-pop); transform-box: fill-box; transform-origin: center; }
+.ball .bf { transition: fill .5s; }
+.yarn:hover .ball:nth-of-type(odd) { transform: rotate(-16deg) translateY(-5px); }
+.yarn:hover .ball:nth-of-type(even) { transform: rotate(12deg) translateY(-3px); }
 .draft { width: 340px; height: 330px; z-index: 3; --rot: -3deg; }
-.draft .sheet-paper { position: absolute; left: 0; top: 18px; width: 300px; height: 300px; background: var(--paper); border-radius: 4px; transition: background-color .6s; }
-.draft .sheet-paper::before { content: ""; position: absolute; left: 50%; top: -12px; width: 86px; height: 24px; margin-left: -43px; background: rgba(47, 191, 134, .55); transform: rotate(-3deg); }
+.draft .sheet-paper { position: absolute; left: 0; top: 18px; width: 300px; height: 300px; }
+.draft .paper-bg { position: absolute; inset: 0; background: var(--paper); transition: background-color .6s; }
+.draft .sheet-paper::before { content: ""; position: absolute; z-index: 1; left: 50%; top: -12px; width: 86px; height: 24px; margin-left: -43px; background: rgba(47, 191, 134, .55); transform: rotate(-3deg); }
 .draft .grid-thumb { position: absolute; left: 22px; top: 40px; width: 180px; height: 240px; }
 .draft .lines { position: absolute; left: 216px; top: 46px; width: 64px; font-family: var(--f-type); font-size: 13px; line-height: 1.45; color: var(--muted); }
 .draft .lines b { display: block; color: var(--ink); font-size: 15px; }
@@ -182,7 +172,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .thread { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; overflow: visible; transition: opacity var(--cam-ms); }
 .thread path { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke .5s; }
 
-.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); white-space: nowrap; transition: opacity .3s; z-index: 5; background: var(--wall); padding: 2px 10px; border-radius: 6px; }
+.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); white-space: nowrap; transition: opacity .3s; z-index: 5; }
 .stage.focused .hint-floor { opacity: 0; }
 
 /* ---------- 场景 ---------- */
@@ -193,27 +183,25 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .eyebrow i { font-style: normal; font-weight: 700; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); font-size: 13px; }
 .scene-head h2 { margin: 4px 0 0; font-family: var(--f-display); font-weight: 400; font-size: var(--t-xl); line-height: 1.15; text-wrap: balance; }
 .scene-body { max-width: 1240px; margin: 0 auto; }
-.panel { background: var(--paper); border-radius: 18px; box-shadow: 0 8px 0 var(--shadow); min-width: 0; transition: background-color .6s; }
+.panel { min-width: 0; }
 .stitch { border: 0; border-top: 1.5px dashed var(--line); margin: 0; }
 
 .loom-layout { display: grid; grid-template-columns: 64px minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
-.rail { display: flex; flex-direction: column; gap: 4px; padding: 8px; position: sticky; top: 0; }
+.rail { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; }
 .tool { display: grid; place-items: center; gap: 2px; width: 48px; padding: 7px 0 5px; border: 0; border-radius: 14px; background: none; cursor: pointer; font-size: 11px; color: var(--muted); }
-.tool:hover { background: var(--paper-2); color: var(--ink); }
+.tool:hover { background: rgba(255,255,255,.35); color: var(--ink); }
 .tool[aria-pressed="true"] { background: var(--ink); color: var(--ink-fg); }
 .rail .sep { height: 0; margin: 4px 6px; border-top: 1.5px dashed var(--line); }
 .cur-swatch { width: 40px; height: 40px; margin: 2px auto 0; border-radius: 50%; border: 0; cursor: pointer;
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 5px, rgba(0,0,0,.15) 5px 7px); }
 
-.loomframe { position: relative; background: var(--beech); border-radius: 22px; padding: 22px 18px; box-shadow: 0 8px 0 var(--shadow); min-width: 0; transition: background-color .6s; }
-.loomframe::before, .loomframe::after { content: ""; position: absolute; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: var(--beech-2); }
-.loomframe::before { left: 10px; } .loomframe::after { right: 10px; }
-.viewport { position: relative; overflow: auto; max-height: min(60vh, 640px); border-radius: 12px; background: var(--well); touch-action: pan-x pan-y; }
+.loomframe { position: relative; min-width: 0; display: grid; gap: 10px; }
+.beam { height: 22px; border-radius: 11px; background: var(--beech); margin: 0 -10px; }
+.viewport { position: relative; overflow: auto; max-height: min(60vh, 640px); touch-action: pan-x pan-y; }
 .viewport canvas { display: block; margin: 0 auto; }
 .viewport.gesture canvas { touch-action: none; }
-.frame-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-.frame-foot .mono { font-weight: 700; font-size: var(--t-sm); color: #3B2C17; }
-.frame-foot .btn { background: rgba(255,255,255,.55); color: #3B2C17; }
+.frame-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.frame-foot .mono { font-weight: 700; font-size: var(--t-sm); }
 .zoom { display: inline-flex; align-items: center; gap: 6px; }
 .press-ring { position: fixed; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; pointer-events: none; z-index: 40; opacity: 0;
   background: conic-gradient(var(--now) calc(var(--p, 0) * 1turn), transparent 0); -webkit-mask: radial-gradient(circle, transparent 18px, #000 19px); mask: radial-gradient(circle, transparent 18px, #000 19px); }
@@ -223,7 +211,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .shuttle-cursor { position: fixed; z-index: 41; width: 64px; height: 22px; margin: -11px 0 0 -32px; pointer-events: none; opacity: 0; transition: opacity .15s; }
 .shuttle-cursor.show { opacity: 1; }
 
-.rowbar { margin-top: 16px; padding: 14px 18px 16px; display: grid; gap: 12px; }
+.rowbar { margin-top: 22px; padding-top: 18px; border-top: 1.5px dashed var(--line); display: grid; gap: 12px; }
 .rowhead { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .bignum { display: flex; align-items: baseline; gap: 4px; font-family: var(--f-num); line-height: .9; }
 .bignum b { font-weight: 600; font-size: 64px; color: var(--now); font-variant-numeric: tabular-nums; }
@@ -242,7 +230,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .segchip.empty { color: var(--muted); }
 .track-wrap { overflow-x: auto; padding: 4px 0; }
 .track { display: flex; gap: 2px; width: max-content; }
-.track span { width: 12px; height: 28px; border-radius: 4px; position: relative; background: var(--well); }
+.track span { width: 12px; height: 28px; border-radius: 4px; position: relative; background: rgba(255,255,255,.35); }
 .track span::after { content: ""; position: absolute; left: 1px; right: 1px; height: 12px; border-radius: 3px; background: var(--c); }
 .track span.o::after { top: 1px; } .track span.u::after { bottom: 1px; opacity: .5; }
 .track span.n::after { display: none; }
@@ -252,8 +240,9 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .warnline { display: flex; align-items: center; gap: 8px; font-size: var(--t-sm); }
 .warnline::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--now); flex: none; }
 
-.drawer { padding: 4px 0; }
-.drawer details { padding: 0 16px; }
+.drawer { padding: 0; }
+.drawer details { padding: 0; }
+.drawer details:first-child summary { padding-top: 0; }
 .drawer details + details { border-top: 1.5px dashed var(--line); }
 .drawer summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 13px 0; font-weight: 700; font-size: var(--t-sm); }
 .drawer summary::-webkit-details-marker { display: none; }
@@ -263,13 +252,13 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .drawer .row2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--t-sm); flex-wrap: wrap; }
 .drawer p { margin: 0; font-size: var(--t-xs); color: var(--muted); line-height: 1.65; }
 .rule-visual { display: flex; gap: 3px; }
-.rule-visual span { width: 14px; height: 22px; border-radius: 4px; background: var(--paper-2); position: relative; }
+.rule-visual span { width: 14px; height: 22px; border-radius: 4px; background: rgba(255,255,255,.4); position: relative; }
 .rule-visual span.o { background: var(--ink); }
 .rule-visual span.u::after { content: ""; position: absolute; left: 4px; right: 4px; top: 0; bottom: 0; background: var(--beech-2); }
 
 .sheet-scrim { position: absolute; inset: 0; z-index: 30; background: color-mix(in srgb, var(--ink) 28%, transparent); display: grid; place-items: center; padding: 16px; opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s .25s; }
 .sheet-scrim.on { opacity: 1; visibility: visible; transition: opacity .25s; }
-.sizesheet { width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 22px; display: grid; gap: 14px; transform: translateY(20px) rotate(-1deg); transition: transform .4s var(--ease-pop); }
+.sizesheet { background: var(--paper); border-radius: 6px; width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 22px; display: grid; gap: 14px; transform: translateY(20px) rotate(-1deg); transition: transform .4s var(--ease-pop); }
 .sheet-scrim.on .sizesheet { transform: none; }
 .sizesheet h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: var(--t-lg); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -280,20 +269,19 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .sheet-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 
 .yarn-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-.basket { padding: 20px; background: var(--wicker); border-radius: 40px 40px 70px 70px; box-shadow: 0 8px 0 var(--shadow);
-  background-image: repeating-linear-gradient(180deg, transparent 0 12px, var(--wicker-2) 12px 15px), repeating-linear-gradient(90deg, transparent 0 18px, rgba(0,0,0,.08) 18px 21px); }
-.basket-inner { background: var(--paper); border-radius: 28px 28px 54px 54px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 16px 10px; transition: background-color .6s; }
+.basket { min-width: 0; }
+.basket-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 18px 10px; }
 .ballbtn { display: grid; justify-items: center; gap: 6px; border: 0; background: none; cursor: pointer; padding: 6px 4px; border-radius: 16px; position: relative; }
-.ballbtn .b { width: 70px; height: 70px; border-radius: 50%; transition: transform .4s var(--ease-pop);
+.ballbtn .b { width: 70px; height: 70px; border-radius: 50%; filter: url(#crayon); transition: transform .4s var(--ease-pop);
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 7px, rgba(0,0,0,.14) 7px 9px), repeating-linear-gradient(52deg, transparent 0 11px, rgba(255,255,255,.12) 11px 12px), radial-gradient(circle at 60% 70%, transparent 55%, rgba(0,0,0,.18) 72%); }
 .ballbtn:hover .b { transform: rotate(-16deg) translateY(-4px); }
 .ballbtn .nm { font-size: var(--t-xs); font-weight: 500; }
-.ballbtn[aria-pressed="true"] .b { box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px var(--ink); }
+.ballbtn[aria-pressed="true"] .b { box-shadow: 0 0 0 4px var(--desk), 0 0 0 6px var(--ink); }
 .ballbtn .badges { position: absolute; top: 0; right: 4px; display: flex; gap: 3px; }
 .badge { font-family: var(--f-type); font-size: 12px; font-weight: 700; line-height: 1; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .badge.w { background: var(--ink); color: var(--ink-fg); box-shadow: none; }
-.yarn-detail { padding: 20px; display: grid; gap: 14px; }
-.bigball { width: 132px; height: 132px; margin: 4px auto; border-radius: 50%; transition: background-color .4s;
+.yarn-detail { display: grid; gap: 14px; }
+.bigball { width: 132px; height: 132px; margin: 4px auto; border-radius: 50%; filter: url(#crayon); transition: background-color .4s;
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 10px, rgba(0,0,0,.14) 10px 13px), repeating-linear-gradient(52deg, transparent 0 15px, rgba(255,255,255,.12) 15px 17px), radial-gradient(circle at 60% 70%, transparent 55%, rgba(0,0,0,.18) 72%); }
 .yarn-detail h3 { margin: 0; text-align: center; font-family: var(--f-display); font-weight: 400; font-size: var(--t-xl); }
 .yarn-detail .hex { text-align: center; color: var(--muted); font-size: var(--t-sm); }
@@ -304,26 +292,27 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .count { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
 
 .draft-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr); gap: 16px; align-items: start; }
-.card { padding: 18px; display: grid; gap: 12px; }
+.card { display: grid; gap: 12px; align-content: start; }
 .card h3 { margin: 0; font-size: var(--t-md); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card h3 em { font-style: normal; font-weight: 400; font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
-.drop { position: relative; border-radius: 14px; background: var(--well); box-shadow: inset 0 0 0 1.5px var(--line); display: grid; place-items: center; min-height: 260px; padding: 12px; transition: box-shadow .2s; }
-.drop.over { box-shadow: inset 0 0 0 2px var(--ink); }
-.drop canvas { max-width: 100%; max-height: 320px; background: #FFFFFF; padding: 6px; }
-.drop .pick { position: absolute; right: 10px; bottom: 10px; }
-.demo-flag { font-family: var(--f-type); font-size: var(--t-xs); position: absolute; left: 12px; top: 10px; color: var(--muted); }
-.preview-box { border-radius: 14px; background: var(--well); display: grid; place-items: center; min-height: 260px; padding: 12px; }
+.drop { position: relative; display: grid; place-items: center; min-height: 260px; padding: 12px 0 48px; border-radius: 14px; transition: background-color .2s; }
+.drop.over { background: rgba(255,255,255,.3); }
+.drop canvas { max-width: 100%; max-height: 320px; background: #FFFFFF; padding: 8px 8px 26px; transform: rotate(-2deg); }
+.drop .pick { position: absolute; right: 0; bottom: 0; }
+.demo-flag { font-family: var(--f-type); font-size: var(--t-xs); position: absolute; left: 0; bottom: 10px; color: var(--muted); }
+.preview-box { display: grid; place-items: center; min-height: 260px; padding: 12px 0; }
 .preview-box canvas { max-width: 100%; max-height: 320px; image-rendering: pixelated; }
 .palette-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .palette-row i { width: 22px; height: 22px; border-radius: 50%; }
-.caveat { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--caveat); font-size: var(--t-xs); line-height: 1.7; transition: background-color .6s; }
+.caveat { display: grid; gap: 6px; padding-top: 14px; border-top: 1.5px dashed var(--line); font-size: var(--t-xs); line-height: 1.7; }
+.caveat ol li::marker { color: var(--lamp); font-family: var(--f-type); font-weight: 700; }
 .caveat b { font-size: var(--t-sm); }
 .caveat ol { margin: 0; padding-left: 1.4em; }
-.files { margin-top: 16px; display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding: 14px 18px; }
+.files { margin-top: 24px; display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding-top: 18px; border-top: 1.5px dashed var(--line); }
 .files .label { font-weight: 700; font-size: var(--t-sm); }
 .files .grow { flex: 1; }
 .files .count { font-size: var(--t-xs); }
-.applied { display: none; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: 14px; background: var(--paper-2); font-size: var(--t-xs); }
+.applied { display: none; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: var(--t-xs); }
 .applied.on { display: flex; }
 
 .toast { position: absolute; left: 50%; bottom: 22px; z-index: 50; transform: translate(-50%, 30px); opacity: 0; max-width: min(520px, calc(100% - 32px)); padding: 11px 18px; border-radius: 16px; background: var(--ink); color: var(--ink-fg); font-size: var(--t-sm); line-height: 1.5; transition: transform .4s var(--ease-pop), opacity .2s; pointer-events: none; }
@@ -359,14 +348,19 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <filter id="fuzz" x="-6%" y="-6%" width="112%" height="112%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="4" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" result="d"/>
-      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" seed="9" result="g"/>
-      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.2 -1.25" result="specks"/>
-      <feComposite in="specks" in2="d" operator="in" result="sp"/>
-      <feComponentTransfer in="sp" result="spf"><feFuncA type="linear" slope=".22"/></feComponentTransfer>
-      <feMerge><feMergeNode in="d"/><feMergeNode in="spf"/></feMerge>
+    <!-- 蜡笔质感：低频抖动让轮廓不再笔直，高频抖动做出毛边，再用噪点挖出露底的颗粒 -->
+    <filter id="crayon" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="2" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="9" xChannelSelector="R" yChannelSelector="G" result="wob"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="5" result="f"/>
+      <feDisplacementMap in="wob" in2="f" scale="5" xChannelSelector="R" yChannelSelector="G" result="fz"/>
+      <feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="1" seed="11" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.6 0 0 0 2.3" result="holes"/>
+      <feComposite in="fz" in2="holes" operator="in" result="grain"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.4 0 0 0 -1.45" result="dk"/>
+      <feComposite in="dk" in2="grain" operator="in" result="dks"/>
+      <feComponentTransfer in="dks" result="dkf"><feFuncA type="linear" slope=".35"/></feComponentTransfer>
+      <feMerge><feMergeNode in="grain"/><feMergeNode in="dkf"/></feMerge>
     </filter>
     <symbol id="i-shuttle" viewBox="0 0 24 24"><path d="M2 12c3-3.5 17-3.5 20 0-3 3.5-17 3.5-20 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-brush" viewBox="0 0 24 24"><path d="M15 4l5 5-9 9H6v-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M13 6l5 5" stroke="currentColor" stroke-width="2"/></symbol>
@@ -395,14 +389,11 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
   <main class="stage" id="stage">
     <div class="world" id="world">
-      <div class="wall grain" id="wall"></div>
       <div class="desk grain" id="desk"><svg id="deskGrain" aria-hidden="true"></svg></div>
-      <div class="desk-front" id="deskFront"><span class="drawer-cut" id="drawerCut"></span></div>
-      <div class="floor" id="floor"></div>
       <div class="glow" id="glow"></div>
 
       <button class="obj lamp" id="objLamp" data-lamp aria-pressed="false" aria-label="台灯：切换白天和夜间">
-        <svg class="art fuzz" viewBox="0 0 200 270" aria-hidden="true">
+        <svg class="art crayon" viewBox="0 0 200 270" aria-hidden="true">
           <ellipse class="bulb" cx="100" cy="122" rx="44" ry="16" fill="var(--bulb)"/>
           <path d="M84 120c-4 40-6 80-12 112h56c-6-32-8-72-12-112z" fill="var(--lamp-2)"/>
           <path d="M48 234c10-12 94-12 104 0 6 8 0 26-52 26s-58-18-52-26z" fill="var(--lamp-2)"/>
@@ -413,17 +404,17 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       </button>
 
       <button class="obj loom" id="objLoom" data-go="loom" aria-label="织布机：进入穿线试织">
-        <svg class="art fuzz" viewBox="0 0 620 560" aria-hidden="true">
+        <svg class="art crayon" viewBox="0 0 620 560" aria-hidden="true">
           <rect x="24" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
           <rect x="554" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
           <rect x="0" y="36" width="620" height="44" rx="12" fill="var(--beech)"/>
-          <path d="M30 52c90 5 170-4 270 2s210 4 290-2" fill="none" stroke="var(--beech-2)" stroke-width="3" opacity=".6"/>
+          <path d="M30 50c90 5 170-4 270 2s210 4 290-2M40 64c120-3 240 4 360 0s150-2 190 1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M38 90c2 120-2 260 1 420M576 90c-2 140 2 280-1 420" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
           <rect x="0" y="480" width="620" height="46" rx="12" fill="var(--beech)"/>
-          <path d="M40 500c120 5 260-5 380 0s120 2 160 0" fill="none" stroke="var(--beech-2)" stroke-width="3" opacity=".6"/>
+          <path d="M40 498c120 5 260-5 380 0s120 2 160 0M30 512c140-4 300 4 560-1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/>
           <g fill="var(--beech-2)"><circle cx="45" cy="58" r="7"/><circle cx="575" cy="58" r="7"/><circle cx="45" cy="503" r="7"/><circle cx="575" cy="503" r="7"/></g>
         </svg>
-        <canvas id="loomCanvas" aria-hidden="true"></canvas>
-        <svg class="art fuzz" viewBox="0 0 620 560" aria-hidden="true" style="pointer-events:none">
+        <canvas id="loomCanvas" class="crayon" aria-hidden="true"></canvas>
+        <svg class="art crayon" viewBox="0 0 620 560" aria-hidden="true" style="pointer-events:none">
           <rect x="70" y="118" width="480" height="20" rx="6" fill="var(--beech-2)"/>
           <g class="shuttle-obj">
             <path d="M360 452c40-16 190-20 236-4-44 18-196 20-236 4z" fill="var(--beech-2)"/>
@@ -434,38 +425,47 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       </button>
 
       <button class="obj ruler" id="objRuler" data-go="loom" data-sheet="1" aria-label="尺子：调整织面尺寸">
-        <svg class="art fuzz" viewBox="0 0 470 52" aria-hidden="true" id="rulerArt"></svg>
+        <svg class="art crayon" viewBox="0 0 470 52" aria-hidden="true" id="rulerArt"></svg>
         <span class="size" id="rulerTag">12 × 16 cm</span>
       </button>
 
-      <div class="deco coaster" id="coasterA" style="--fr:#7FE0C4" aria-hidden="true"><div class="fab fuzz" style="background:linear-gradient(#F0532E,#F0532E) 0 0/100% 20px no-repeat, linear-gradient(#C9C23A,#C9C23A) 0 100%/100% 16px no-repeat, repeating-conic-gradient(#2FBF86 0 25%, #C9C23A 0 50%) 0 0/16px 16px"></div></div>
-      <div class="deco coaster nofringe" id="coasterB" aria-hidden="true"><div class="fab fuzz" style="top:8px;bottom:8px;background:linear-gradient(#2FBF86,#2FBF86) 0 0/100% 12px no-repeat, linear-gradient(#1F5A34,#1F5A34) 0 12px/100% 40px no-repeat, linear-gradient(#A79E95,#A79E95) 0 52px/44px 32px no-repeat, linear-gradient(#F0532E,#F0532E) 44px 52px/100% 32px no-repeat, #C9C23A"></div></div>
+      <div class="deco coaster" id="coasterA" style="--fr:#7FE0C4" aria-hidden="true"><div class="fab crayon" style="background:linear-gradient(#F0532E,#F0532E) 0 0/100% 20px no-repeat, linear-gradient(#C9C23A,#C9C23A) 0 100%/100% 16px no-repeat, repeating-conic-gradient(#2FBF86 0 25%, #C9C23A 0 50%) 0 0/16px 16px"></div></div>
+      <div class="deco coaster nofringe" id="coasterB" aria-hidden="true"><div class="fab crayon" style="top:8px;bottom:8px;background:linear-gradient(#2FBF86,#2FBF86) 0 0/100% 12px no-repeat, linear-gradient(#1F5A34,#1F5A34) 0 12px/100% 40px no-repeat, linear-gradient(#A79E95,#A79E95) 0 52px/44px 32px no-repeat, linear-gradient(#F0532E,#F0532E) 44px 52px/100% 32px no-repeat, #C9C23A"></div></div>
 
       <svg class="thread" id="thread" aria-hidden="true"><path id="threadPath"/></svg>
 
       <button class="obj yarn" id="objYarn" data-go="yarn" aria-label="毛线：进入选线">
-        <svg class="art fuzz" viewBox="0 0 370 280" aria-hidden="true">
-          <path d="M74 140C70 40 300 40 296 140" fill="none" stroke="var(--wicker)" stroke-width="16" stroke-linecap="round"/>
-          <path d="M74 140C70 40 300 40 296 140" fill="none" stroke="var(--wicker-2)" stroke-width="16" stroke-dasharray="6 9" opacity=".7"/>
-          <path d="M14 132h342l-22 120c-3 14-14 24-28 24H64c-14 0-25-10-28-24z" fill="var(--wicker)"/>
-          <g stroke="var(--wicker-2)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".85">
-            <path d="M28 158h314" stroke-dasharray="12 8"/><path d="M34 184h302" stroke-dasharray="12 8" stroke-dashoffset="10"/>
-            <path d="M40 210h290" stroke-dasharray="12 8"/><path d="M46 236h278" stroke-dasharray="12 8" stroke-dashoffset="10"/>
+        <svg class="art crayon" viewBox="0 0 370 280" aria-hidden="true">
+          <path d="M70 140C64 36 304 32 298 140" fill="none" stroke="var(--wicker)" stroke-width="16" stroke-linecap="round"/>
+          <path d="M70 140C64 36 304 32 298 140" fill="none" stroke="var(--wicker-2)" stroke-width="6" stroke-dasharray="5 11" stroke-linecap="round"/>
+          <g class="ball" data-k="1"><circle class="bf" cx="178" cy="92" r="46"/>
+            <path d="M141.2 82.8c23.0 -23.0 55.199999999999996 -25.3 73.60000000000001 -4.6000000000000005M136.6 98.9c27.599999999999998 -25.3 64.39999999999999 -23.0 82.8 2.3000000000000003M145.8 117.3c23.0 -20.7 50.6 -18.400000000000002 66.7 -2.3000000000000003" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4.1" stroke-linecap="round"/>
+            <path d="M161.9 57.5c-11.5 23.0 -9.200000000000001 50.6 6.8999999999999995 69.0" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.7" stroke-linecap="round"/></g><g class="ball" data-k="2"><circle class="bf" cx="262" cy="110" r="46"/>
+            <path d="M225.2 100.8c23.0 -23.0 55.199999999999996 -25.3 73.60000000000001 -4.6000000000000005M220.6 116.9c27.599999999999998 -25.3 64.39999999999999 -23.0 82.8 2.3000000000000003M229.8 135.3c23.0 -20.7 50.6 -18.400000000000002 66.7 -2.3000000000000003" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4.1" stroke-linecap="round"/>
+            <path d="M245.9 75.5c-11.5 23.0 -9.200000000000001 50.6 6.8999999999999995 69.0" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.7" stroke-linecap="round"/></g><g class="ball" data-k="3"><circle class="bf" cx="322" cy="128" r="32"/>
+            <path d="M296.4 121.6c16.0 -16.0 38.4 -17.6 51.2 -3.2M293.2 132.8c19.2 -17.6 44.8 -16.0 57.6 1.6M299.6 145.6c16.0 -14.4 35.2 -12.8 46.4 -1.6" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="3.0" stroke-linecap="round"/>
+            <path d="M310.8 104.0c-8.0 16.0 -6.4 35.2 4.8 48.0" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.0" stroke-linecap="round"/></g><g class="ball" data-k="0"><circle class="bf" cx="98" cy="108" r="50"/>
+            <path d="M58.0 98.0c25.0 -25.0 60.0 -27.500000000000004 80.0 -5.0M53.0 115.5c30.0 -27.500000000000004 70.0 -25.0 90.0 2.5M63.0 135.5c25.0 -22.5 55.00000000000001 -20.0 72.5 -2.5" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M80.5 70.5c-12.5 25.0 -10.0 55.00000000000001 7.5 75.0" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4.0" stroke-linecap="round"/></g>
+          <path d="M12 136c110-6 240-6 346 0l-22 116c-3 16-14 26-30 26H64c-16 0-27-10-30-26z" fill="var(--wicker)"/>
+          <g stroke="var(--wicker-2)" stroke-width="6" stroke-linecap="round" fill="none">
+            <path d="M30 160c8-6 16-6 24 0s16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0"/>
+            <path d="M36 188c8-6 16-6 24 0s16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0" opacity=".8"/>
+            <path d="M42 216c8-6 16-6 24 0s16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0"/>
+            <path d="M50 244c8-6 16-6 24 0s16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0 16-6 24 0 16 6 24 0" opacity=".8"/>
           </g>
-          <rect x="4" y="122" width="362" height="20" rx="10" fill="var(--wicker-2)"/>
+          <path d="M6 130c120-8 240-8 358 0" stroke="var(--wicker-2)" stroke-width="18" stroke-linecap="round" fill="none"/>
+          <g class="ball" data-k="4"><circle class="bf" cx="34" cy="234" r="38"/>
+            <path d="M3.599999999999998 226.4c19.0 -19.0 45.6 -20.900000000000002 60.800000000000004 -3.8000000000000003M-0.20000000000000284 239.7c22.8 -20.900000000000002 53.199999999999996 -19.0 68.4 1.9000000000000001M7.400000000000002 254.9c19.0 -17.1 41.800000000000004 -15.200000000000001 55.1 -1.9000000000000001" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M20.700000000000003 205.5c-9.5 19.0 -7.6000000000000005 41.800000000000004 5.7 57.0" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.0" stroke-linecap="round"/></g>
         </svg>
-        <span class="ballspot" style="left:44px;top:46px;width:104px;height:104px"></span>
-        <span class="ballspot" style="left:134px;top:30px;width:94px;height:94px"></span>
-        <span class="ballspot" style="left:212px;top:52px;width:98px;height:98px"></span>
-        <span class="ballspot" style="left:290px;top:84px;width:68px;height:68px"></span>
-        <span class="ballspot" style="left:-14px;top:176px;width:84px;height:84px"></span>
         <span class="ann" style="left:40px;top:-30px"><i>2</i><b>毛线</b><em id="yarnCount">9 colors.</em></span>
       </button>
 
       <button class="obj draft" id="objDraft" data-go="draft" aria-label="草稿：进入图片转换与草稿文件">
-        <div class="sheet-paper"><canvas class="grid-thumb" id="draftThumb"></canvas><div class="lines"><b id="thumbSize">24×32</b>示例<br>草稿<br><br>no.01</div></div>
-        <div class="photo"><canvas id="photoThumb" width="220" height="250"></canvas></div>
-        <span class="ann" style="left:-30px;top:-38px"><i>3</i><b>草稿</b><em>draft.</em></span>
+        <div class="sheet-paper"><div class="paper-bg crayon"></div><canvas class="grid-thumb crayon" id="draftThumb"></canvas><div class="lines"><b id="thumbSize">24×32</b>示例<br>草稿<br><br>no.01</div></div>
+        <div class="photo crayon"><canvas id="photoThumb" width="220" height="250"></canvas></div>
+        <span class="ann" style="left:236px;top:-26px"><i>3</i><b>草稿</b><em>draft.</em></span>
       </button>
     </div>
 
@@ -496,7 +496,9 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
           <div style="min-width:0">
             <div class="loomframe">
+              <div class="beam crayon" aria-hidden="true"></div>
               <div class="viewport gesture" id="viewport"><canvas id="weaveCanvas"></canvas></div>
+              <div class="beam crayon" aria-hidden="true"></div>
               <div class="frame-foot">
                 <span class="mono" id="sizeLabel">24 根 × 32 行 · 12 × 16 cm</span>
                 <span class="zoom">
@@ -738,15 +740,10 @@ function drawWeave(ctx, o) {
         continue;
       }
       const col = S.palette[ci] ? S.palette[ci].hex : '#999999';
-      if (!tex || cs < 5) { ctx.fillStyle = col; ctx.fillRect(x, y, cs + .5, cs + .5); continue; }
-      ctx.fillStyle = mix(col, '#000000', .28); ctx.fillRect(x, y, cs, cs);
-      if (ov) {
-        ctx.fillStyle = col; rr(ctx, x + .5, y + cs * .12, cs - 1, cs * .76, cs * .32); ctx.fill();
-        ctx.fillStyle = mix(col, '#FFFFFF', .35); ctx.fillRect(x + cs * .2, y + cs * .26, cs * .6, Math.max(1, cs * .1));
-      } else {
-        ctx.fillStyle = col; ctx.fillRect(x, y + cs * .16, cs, cs * .68);
-        ctx.fillStyle = warpHex; ctx.globalAlpha = .75; rr(ctx, x + cs * .36, y + .5, cs * .28, cs - 1, cs * .14); ctx.fill(); ctx.globalAlpha = 1;
-      }
+      ctx.fillStyle = col; ctx.fillRect(x, y, cs + .5, cs + .5);
+      if (!tex || cs < 6) continue;
+      if (!ov) { ctx.fillStyle = warpHex; ctx.globalAlpha = .45; ctx.fillRect(x + cs * .43, y + cs * .12, Math.max(1, cs * .14), cs * .76); ctx.globalAlpha = 1; }
+      ctx.fillStyle = '#000000'; ctx.globalAlpha = .07; ctx.fillRect(x, y + cs - 1, cs, 1); ctx.globalAlpha = 1;
     }
   }
   const gw = S.cols * cs;
@@ -807,8 +804,8 @@ const fmt = n => (Math.round(n * 10) / 10).toString();
 
 /* ======================= 工作台布局与镜头 ======================= */
 const LAYOUT = {
-  land: { w: 1240, h: 880, deskTop: 190, deskFront: 830, lamp: [1020, 0], loom: [40, 170], ruler: [90, 752], yarn: [720, 250], draft: [870, 500], coasterA: [700, 660], coasterB: [1090, 300], cut: 520 },
-  port: { w: 800, h: 1460, deskTop: 200, deskFront: 1400, lamp: [610, 0], loom: [90, 270], ruler: [165, 855], yarn: [30, 940], draft: [430, 950], coasterA: [610, 1270], coasterB: [50, 1255], cut: 280 }
+  land: { w: 1240, h: 880, lamp: [1020, 0], loom: [40, 170], ruler: [90, 752], yarn: [720, 250], draft: [870, 500], coasterA: [700, 660], coasterB: [1090, 300] },
+  port: { w: 800, h: 1460, lamp: [610, 0], loom: [90, 270], ruler: [165, 855], yarn: [30, 940], draft: [430, 950], coasterA: [610, 1270], coasterB: [50, 1255] }
 };
 const SIZE = { loom: [620, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
 const stage = $('#stage'), world = $('#world');
@@ -823,10 +820,6 @@ function layout() {
   place($('#objDraft'), L.draft); place($('#objLamp'), L.lamp); place($('#coasterA'), L.coasterA); place($('#coasterB'), L.coasterB);
   $('#coasterA').style.transform = 'rotate(-9deg)'; $('#coasterB').style.transform = 'rotate(7deg)';
   $('#glow').style.left = (L.lamp[0] + 100) + 'px'; $('#glow').style.top = (L.lamp[1] + 130) + 'px';
-  $('#wall').style.height = (3000 + L.deskTop) + 'px';
-  const dk = $('#desk'); dk.style.top = L.deskTop + 'px'; dk.style.height = (L.deskFront - L.deskTop) + 'px';
-  const df = $('#deskFront'); df.style.top = L.deskFront + 'px'; df.style.height = '46px'; $('#drawerCut').style.left = (3000 + L.cut) + 'px';
-  $('#floor').style.top = (L.deskFront + 46) + 'px';
   deskGrain();
   const th = $('#thread'); th.setAttribute('width', L.w); th.setAttribute('height', L.h); th.setAttribute('viewBox', `0 0 ${L.w} ${L.h}`);
   drawThread();
@@ -834,7 +827,7 @@ function layout() {
 }
 function deskGrain() {
   // 桦木多层板上的年轮，取自实物照片里的桌面
-  const svg = $('#deskGrain'), h = L.deskFront - L.deskTop; svg.setAttribute('width', L.w); svg.setAttribute('height', h);
+  const svg = $('#deskGrain'), h = L.h; svg.setAttribute('width', L.w); svg.setAttribute('height', h);
   let s = '';
   const rings = (cx, cy, n, k) => { for (let i = 1; i <= n; i++) s += `<ellipse cx="${cx}" cy="${cy}" rx="${i * 34 * k}" ry="${i * 15 * k}" fill="none" stroke="var(--desk-2)" stroke-width="2.5" opacity="${.75 - i * .07}"/>`; };
   rings(L.w * .62, h * .18, 6, 1.1); rings(L.w * .12, h * .82, 5, .9);
@@ -842,7 +835,7 @@ function deskGrain() {
   svg.innerHTML = s;
 }
 function drawThread() {
-  const sx = L.yarn[0] + 96, sy = L.yarn[1] + 98, ex = L.loom[0] + 592, ey = L.loom[1] + 450;
+  const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 592, ey = L.loom[1] + 450;
   const port = L === LAYOUT.port;
   const d = port ? `M${sx} ${sy} C ${sx + 60} ${sy - 160}, ${ex + 110} ${ey + 140}, ${ex} ${ey}`
                  : `M${sx} ${sy} C ${sx - 150} ${sy + 60}, ${ex + 150} ${ey - 20}, ${ex} ${ey}`;
@@ -927,7 +920,7 @@ function drawScene() {
   const W = S.cols * cs + m * 2, H = S.rows * cs + m * 2;
   wc.width = W * dpr; wc.height = H * dpr; wc.style.width = W + 'px'; wc.style.height = H + 'px';
   const ctx = wc.getContext('2d'); ctx.scale(dpr, dpr);
-  ctx.fillStyle = tok('--well'); ctx.fillRect(0, 0, W, H);
+  ctx.clearRect(0, 0, W, H);
   drawWeave(ctx, { x0: m, y0: m, cs, tex: S.tex, preview, lock: lockRow, sel: lockRow == null ? S.sel : null });
   if (S.nums) {
     ctx.fillStyle = tok('--muted'); ctx.font = `500 ${Math.min(11, cs * .7)}px JetBrains Mono, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -1127,7 +1120,7 @@ $('#addColor').addEventListener('click', () => {
 /* 篮子里的线团：当前纬线永远在离织布机最近的位置 */
 function basket() {
   const order = [S.cur, ...S.palette.map((_, i) => i).filter(i => i !== S.cur)];
-  $$('.ballspot').forEach((el, k) => { const i = order[k]; el.style.display = i == null ? 'none' : ''; if (i != null) el.style.backgroundColor = S.palette[i].hex; });
+  $$('#objYarn .ball').forEach(g => { const i = order[+g.dataset.k]; g.style.display = i == null ? 'none' : ''; if (i != null) g.querySelector('.bf').style.fill = S.palette[i].hex; });
   $('#yarnCount').textContent = S.palette.length + ' colors.';
   $('#curSwatch').style.backgroundColor = S.palette[S.cur].hex;
   $('#curSwatch').title = `当前线色：${S.palette[S.cur].name}（点击去选线）`;
