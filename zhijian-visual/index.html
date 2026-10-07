@@ -899,7 +899,7 @@ function go(name, opts = {}) {
 function themeNow() { const t = document.documentElement.dataset.theme; return t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
 function syncLamp() { const on = themeNow() === 'dark'; $('#objLamp').setAttribute('aria-pressed', on); $('#objLamp').setAttribute('aria-label', on ? '台灯（开着）：点一下回到白天' : '台灯（关着）：点一下切到夜间'); }
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-lamp]')) { const next = themeNow() === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; syncLamp(); toast(next === 'dark' ? '开灯了，夜里也能接着织' : '关灯了，回到白天'); return; }
+  if (e.target.closest('[data-lamp]')) { const next = themeNow() === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; try { localStorage.setItem('zj-theme', next); } catch (e) {} syncLamp(); toast(next === 'dark' ? '开灯了，夜里也能接着织' : '关灯了，回到白天'); return; }
   const g = e.target.closest('[data-go]'); if (!g) return;
   go(g.dataset.go, { sheet: !!g.dataset.sheet });
 });
@@ -1306,6 +1306,8 @@ function handSVG(text, h) {
 $$('.hand[data-hand]').forEach(el => { const h = parseFloat(getComputedStyle(el).getPropertyValue('--h')) || 32; el.innerHTML = handSVG(el.dataset.hand, h); el.setAttribute('role', 'img'); el.setAttribute('aria-label', el.dataset.hand); });
 
 D.img = makeSample(); showSrc();
+// 默认是关灯后的夜间配色；点台灯切到白天，选择记在这台设备上
+{ let t = null; try { t = localStorage.getItem('zj-theme'); } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; }
 layout(); renderAll(); ruleVis(); syncLamp();
 new ResizeObserver(() => layout()).observe(stage);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderAll(); syncLamp(); });
