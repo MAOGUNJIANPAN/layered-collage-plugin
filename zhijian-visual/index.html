@@ -468,7 +468,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
       <div class="deco coaster" id="coasterA" style="--fr:#7FE0C4" aria-hidden="true"><div class="fab crayon" style="background:linear-gradient(#F0532E,#F0532E) 0 0/100% 20px no-repeat, linear-gradient(#C9C23A,#C9C23A) 0 100%/100% 16px no-repeat, repeating-conic-gradient(#2FBF86 0 25%, #C9C23A 0 50%) 0 0/16px 16px"></div></div>
       <button class="deco toy" id="spareShuttle" style="width:190px;height:40px" aria-label="一把备用梭子"><svg class="crayon" viewBox="0 0 190 40" width="190" height="40"><g class="spin"><path d="M4 20C30 4 160 4 186 20 160 36 30 36 4 20z" fill="var(--beech-2)"/><path d="M16 20h30M144 20h30" stroke="var(--wicker-2)" stroke-width="5" stroke-linecap="round" opacity=".55"/><path d="M60 14c20 5 50 5 70 0M60 26c20-5 50-5 70 0" stroke="#C3A0C4" stroke-width="7" fill="none" stroke-linecap="round"/></g></svg></button>
-      <button class="deco toy" id="looseBall" style="width:120px;height:90px" aria-label="一团滚出来的蓝毛线"><svg class="crayon" viewBox="0 0 120 90" width="120" height="90"><path class="tail" d="M50 52c-20 18-36 30-48 34" fill="none" stroke="#3AA6D6" stroke-width="4" stroke-linecap="round"/><g class="spin"><circle cx="72" cy="44" r="34" fill="#3AA6D6"/><path d="M46 38c14-12 34-14 50-4M42 52c16-12 38-12 56 0M50 66c12-8 28-8 40-2" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4" stroke-linecap="round"/><path d="M62 14c-6 12-6 28 4 40" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/></g></svg></button>
+      <button class="deco toy" id="looseBall" style="width:220px;height:90px;text-align:left" aria-label="一团滚出来的蓝毛线"><svg class="crayon" viewBox="0 0 120 90" width="120" height="90"><path class="tail" d="M2 86C16 86 24 78 46 60" fill="none" stroke="#3AA6D6" stroke-width="4" stroke-linecap="round"/><g class="spin"><circle cx="72" cy="44" r="34" fill="#3AA6D6"/><path d="M46 38c14-12 34-14 50-4M42 52c16-12 38-12 56 0M50 66c12-8 28-8 40-2" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4" stroke-linecap="round"/><path d="M62 14c-6 12-6 28 4 40" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/></g></svg></button>
       <div class="deco coaster nofringe" id="coasterB" aria-hidden="true"><div class="fab crayon" style="top:8px;bottom:8px;background:linear-gradient(#2FBF86,#2FBF86) 0 0/100% 12px no-repeat, linear-gradient(#1F5A34,#1F5A34) 0 12px/100% 40px no-repeat, linear-gradient(#A79E95,#A79E95) 0 52px/44px 32px no-repeat, linear-gradient(#F0532E,#F0532E) 44px 52px/100% 32px no-repeat, #C9C23A"></div></div>
 
       <svg class="thread" id="thread" aria-hidden="true"><path id="threadPath"/></svg>
@@ -1118,7 +1118,7 @@ function sweep(seg) {
   const keys = [...seg.map.keys()].sort((a, b) => seg.dir > 0 ? a - b : b - a), n = keys.length;
   const done = () => { sweeping = false; shut.classList.remove('show'); preview = null; lockRow = null; commitSegment(seg); toast(`第 ${seg.row + 1} 行织入经线 ${Math.min(...keys) + 1}–${Math.max(...keys) + 1}`); };
   if (reduce || n < 2) return done();
-  sweeping = true; lockRow = seg.row; SFX.swish(Math.min(.45, n * .025));
+  sweeping = true; lockRow = seg.row;
   const dur = Math.min(450, 120 + n * 18), t0 = performance.now(), b = wc.getBoundingClientRect();
   shut.classList.add('show');
   const step = now => {
@@ -1363,14 +1363,26 @@ $$('[data-proto]').forEach(b => b.addEventListener('click', () => toast(`「${b.
 
 /* ======================= 点着玩的小东西 ======================= */
 // 蓝线团：点一下滚出去一段，再点滚回来，线头留在原地拉长；梭子：点一下翻个面
-let ballOut = false;
+// 线头一端留在桌上不动，另一端始终连在线团底部：滚出去时线跟着展开，滚回来时收回去。
+// 用 JS 逐帧算位置（Safari 不支持用 CSS 动画改路径），并按定格动画的节奏跳帧。
+let ballX = 0, ballRot = 0, ballBusy = false;
+function ballFrame(x, rot) {
+  const el = $('#looseBall'), g = el.querySelector('.spin'), tail = el.querySelector('.tail');
+  g.style.transform = `translate(${x}px,0) rotate(${rot}deg)`;
+  const ax = 46 + x, ay = 60;                       // 线团左下方的出线点
+  tail.setAttribute('d', `M2 86C${(14 + ax * .3).toFixed(1)} 86 ${(ax - 22).toFixed(1)} ${ay + 18} ${ax.toFixed(1)} ${ay}`);
+}
 $('#looseBall').addEventListener('click', () => {
-  const el = $('#looseBall'), g = el.querySelector('.spin'), tail = el.querySelector('.tail'), dx = ballOut ? 0 : 90;
-  ballOut = !ballOut; SFX.roll(.6);
-  if (reduce) { g.style.transform = `translate(${dx}px,0)`; return; }
-  g.animate([{ transform: `translate(${ballOut ? 0 : 90}px,0) rotate(0deg)` }, { transform: `translate(${dx * .92 + (ballOut ? 0 : 6)}px,0) rotate(${ballOut ? 300 : -300}deg)` }, { transform: `translate(${dx}px,0) rotate(${ballOut ? 340 : -340}deg)` }],
-    { duration: 700, easing: 'steps(12, end)', fill: 'forwards' });
-  tail.animate([{ d: `path("M50 52c-20 18-36 30-48 34")` }, { d: `path("M${50 + dx} 52c-${30 + dx * .6} 22-${46 + dx * .3} 30-${48} 34")` }], { duration: 700, easing: 'steps(12, end)', fill: 'forwards' });
+  if (ballBusy) return; ballBusy = true; SFX.roll(.6);
+  const from = ballX, to = ballX ? 0 : 90, r0 = ballRot, r1 = ballRot + (to > from ? 1 : -1) * (to - from ? Math.abs(to - from) / 34 * 57.3 : 0);
+  if (reduce) { ballX = to; ballRot = r1; ballFrame(to, r1); ballBusy = false; return; }
+  const dur = 700, frames = 12, t0 = performance.now();
+  const tick = now => {
+    const k = Math.min(1, Math.floor((now - t0) / dur * frames) / frames), e = 1 - Math.pow(1 - k, 2);
+    ballFrame(from + (to - from) * e, r0 + (r1 - r0) * e);
+    if (k < 1) requestAnimationFrame(tick); else { ballX = to; ballRot = r1; ballBusy = false; }
+  };
+  requestAnimationFrame(tick);
 });
 let flips = 0;
 $('#spareShuttle').addEventListener('click', () => {
