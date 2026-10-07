@@ -117,6 +117,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; transition: transform var(--cam-ms) var(--ease-cam); }
 .world.instant { transition: none; }
 .room { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.stage::after { content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: .35; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .24  0 0 0 .6 -.2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .room .r-wa { fill: var(--wall-a); transition: fill .6s; } .room .r-wb { fill: var(--wall-b); transition: fill .6s; }
 .room .r-cl { fill: var(--cloth); transition: fill .6s; } .room .r-st { fill: var(--stripe); transition: fill .6s; }
 .grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
@@ -845,18 +847,33 @@ function layout() {
   world.classList.add('instant'); camera(view); void world.offsetWidth; world.classList.remove('instant');
 }
 function drawRoom() {
-  // 房间一角：左墙、右墙，桌面的后沿斜着往右上走，到墙角再折向右下；桌布是斜着的手绘条纹
-  const r = L.room, M = 900, svg = $('#room');
+  // 房间一角：左墙、右墙，桌面的后沿斜着往右上走，到墙角再折向右下。
+  // 桌布条纹是事先算好抖动的手绘色带，不用滤镜（大面积滤镜在手机上太占内存，会导致页面打不开）。
+  const r = L.room, M = 600, svg = $('#room');
   const x0 = -M, x1 = L.w + M, y0 = -M, y1 = L.h + M;
   const ly = r.ly + (r.cy - r.ly) / r.cx * x0, ry = r.cy + r.k * (x1 - r.cx);
   svg.setAttribute('width', x1 - x0); svg.setAttribute('height', y1 - y0);
   svg.style.left = x0 + 'px'; svg.style.top = y0 + 'px';
   svg.setAttribute('viewBox', `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
-  svg.innerHTML = `<defs><pattern id="cloth" patternUnits="userSpaceOnUse" width="74" height="74" patternTransform="rotate(-22)">
-      <rect class="r-cl" width="74" height="74"/><rect class="r-st" y="6" width="74" height="30" rx="8"/></pattern></defs>
-    <polygon class="r-wa crayon" points="${x0},${y0} ${r.cx},${y0} ${r.cx},${r.cy} ${x0},${ly}"/>
-    <polygon class="r-wb crayon" points="${r.cx},${y0} ${x1},${y0} ${x1},${ry} ${r.cx},${r.cy}"/>
-    <polygon class="crayon" fill="url(#cloth)" points="${x0},${ly} ${r.cx},${r.cy} ${x1},${ry} ${x1},${y1} ${x0},${y1}"/>`;
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - .5;
+  const ang = -22 * Math.PI / 180, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux;
+  const len = Math.hypot(x1 - x0, y1 - y0), cxm = (x0 + x1) / 2, cym = (y0 + y1) / 2;
+  let bands = '';
+  for (let o = -len / 2; o < len / 2; o += 74) {
+    const top = [], bot = [];
+    for (let t = -len / 2; t <= len / 2; t += 46) {
+      const w1 = rnd() * 7, w2 = rnd() * 7;
+      top.push([cxm + ux * t + nx * (o + w1), cym + uy * t + ny * (o + w1)]);
+      bot.unshift([cxm + ux * t + nx * (o + 30 + w2), cym + uy * t + ny * (o + 30 + w2)]);
+    }
+    bands += `<path class="r-st" d="M${[...top, ...bot].map(p => p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join('L')}Z"/>`;
+  }
+  const table = `${x0},${ly} ${r.cx},${r.cy} ${x1},${ry} ${x1},${y1} ${x0},${y1}`;
+  svg.innerHTML = `<defs><clipPath id="tableClip"><polygon points="${table}"/></clipPath></defs>
+    <polygon class="r-wa" points="${x0},${y0} ${r.cx},${y0} ${r.cx},${r.cy} ${x0},${ly}"/>
+    <polygon class="r-wb" points="${r.cx},${y0} ${x1},${y0} ${x1},${ry} ${r.cx},${r.cy}"/>
+    <polygon class="r-cl" points="${table}"/>
+    <g clip-path="url(#tableClip)">${bands}</g>`;
 }
 function drawThread() {
   const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 592, ey = L.loom[1] + 450;
