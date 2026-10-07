@@ -30,6 +30,8 @@
   --lamp-2: #F7894A;
   --bulb: #F6E7C4;
   --glow: 0;
+  --journal: #F2EAD6;        /* 手帐纸 */
+  --journal-dot: rgba(120, 96, 60, .26);
   --caveat: #FBE6D6;
   --scrim: rgba(237, 232, 220, .97);
   --shadow: rgba(84, 62, 30, .14);
@@ -50,7 +52,7 @@
     --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
     --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
     --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-    --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --shadow: rgba(0, 0, 0, .35);
+    --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #3E382F; --journal-dot: rgba(236, 222, 190, .16); --shadow: rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
@@ -59,7 +61,7 @@
   --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
   --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
   --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-  --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --shadow: rgba(0, 0, 0, .35);
+  --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #3E382F; --journal-dot: rgba(236, 222, 190, .16); --shadow: rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 
@@ -75,7 +77,7 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px dashed var(--now); outline-offset: 3px; }
 .type { font-family: var(--f-type); }
 
-.app { height: 100%; position: relative; }
+.app { position: fixed; inset: 0; }
 
 /* ---------- 顶栏 ---------- */
 .bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; position: absolute; left: 0; right: 0; top: 0; z-index: 20; pointer-events: none; }
@@ -213,7 +215,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .stage.focused .hint-floor { opacity: 0 !important; }
 
 /* ---------- 场景 ---------- */
-.scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-top: 64px; padding-bottom: 32px; background: var(--base); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
+.scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-top: 64px; padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)); background: var(--base); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
 .scene > * { position: relative; }
 .loom-head { justify-content: flex-end; margin-bottom: 8px; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -341,11 +343,22 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .card h3 em { font-style: normal; font-weight: 400; font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
 .drop { position: relative; display: grid; place-items: center; min-height: 260px; padding: 12px 0 48px; border-radius: 14px; transition: background-color .2s; }
 .drop.over { background: rgba(255,255,255,.3); }
-.drop canvas { max-width: 100%; max-height: 320px; background: #FFFFFF; padding: 8px 8px 26px; transform: rotate(-2deg); }
+.journal { position: relative; background-color: var(--journal);
+  background-image:
+    radial-gradient(circle, var(--journal-dot) 1px, transparent 1.5px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75 .18' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .22  0 0 0 .38 -.14'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 14px 14px, 180px 180px;
+  clip-path: polygon(0 1%, 7% 0, 15% .8%, 26% .2%, 38% 1%, 50% .3%, 63% .9%, 75% 0, 88% .7%, 100% .2%, 99.4% 12%, 100% 26%, 99.3% 41%, 100% 57%, 99.5% 72%, 100% 86%, 99.6% 100%, 86% 99.3%, 73% 100%, 60% 99.2%, 46% 100%, 33% 99.4%, 20% 100%, 8% 99.3%, 0 100%, .6% 85%, 0 70%, .7% 55%, 0 40%, .5% 25%, 0 12%);
+  transition: background-color .6s; }
+.journal-wrap { position: relative; display: inline-block; max-width: 100%; transform: rotate(-2deg); }
+.journal-wrap::after { content: ""; position: absolute; left: 50%; top: -10px; width: 76px; height: 20px; margin-left: -38px; background: rgba(240, 70, 140, .45); transform: rotate(4deg); }
+.journal-photo { display: block; padding: 14px 14px 30px; }
+.drop canvas { display: block; max-width: 100%; max-height: 300px; }
 .drop .pick { position: absolute; right: 0; bottom: 0; }
 .demo-flag { font-family: var(--f-type); font-size: var(--t-xs); position: absolute; left: 0; bottom: 10px; color: var(--muted); }
-.preview-box { position: relative; display: grid; place-items: center; min-height: 260px; padding: 26px 18px 22px; background: var(--paper); transform: rotate(1.2deg); transition: background-color .6s; }
-.preview-box::before { content: ""; position: absolute; left: 50%; top: -11px; width: 84px; height: 22px; margin-left: -42px; background: rgba(47, 191, 134, .6); transform: rotate(-3deg); }
+.preview-box { position: relative; display: grid; place-items: center; min-height: 260px; padding: 28px 18px 24px; transform: rotate(1.2deg); }
+.preview-box-wrap { position: relative; }
+.preview-box-wrap::before { content: ""; position: absolute; z-index: 1; left: 50%; top: -9px; width: 84px; height: 22px; margin-left: -42px; background: rgba(47, 191, 134, .6); transform: rotate(-3deg); }
 .preview-box canvas { max-width: 100%; max-height: 320px; image-rendering: pixelated; }
 .palette-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .palette-row i { width: 22px; height: 22px; border-radius: 50%; }
@@ -648,7 +661,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
             <h3><i>a</i>原图 <em>JPG · PNG · WebP</em></h3>
             <div class="drop" id="drop">
               <span class="demo-flag" id="demoFlag">示例照片</span>
-              <canvas id="srcCanvas"></canvas>
+              <span class="journal-wrap"><span class="journal journal-photo"><canvas id="srcCanvas"></canvas></span></span>
               <label class="btn pick">选择图片<input type="file" id="fileIn" accept="image/jpeg,image/png,image/webp" hidden></label>
             </div>
             <div class="row2" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between">
@@ -676,7 +689,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
           <div class="panel card">
             <h3><i>c</i>配色草稿预览 <em class="mono" id="pvSize">24 × 32</em></h3>
-            <div class="preview-box"><canvas id="pvCanvas"></canvas></div>
+            <div class="preview-box-wrap"><div class="preview-box journal"><canvas id="pvCanvas"></canvas></div></div>
             <div class="palette-row" id="pvPal"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn primary" id="applyBtn">应用到草稿</button>
