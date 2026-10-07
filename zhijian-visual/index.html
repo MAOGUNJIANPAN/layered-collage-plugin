@@ -66,7 +66,10 @@
 html, body { height: 100%; }
 body { background: var(--wall-a); color: var(--ink); font-family: var(--f-body); font-size: var(--t-md); overflow: hidden; transition: background-color .6s; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-button { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+/* 这是一个工具，不是文章：长按时不要选中文字、不要弹出拷贝菜单（输入框除外） */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px dashed var(--now); outline-offset: 3px; }
@@ -1128,6 +1131,10 @@ function sweep(seg) {
   };
   requestAnimationFrame(step);
 }
+// iOS 长按会触发选字和拷贝菜单，在织面上一律拦掉
+['contextmenu', 'selectstart', 'dragstart'].forEach(t => wc.addEventListener(t, e => e.preventDefault()));
+wc.addEventListener('touchstart', e => { if (e.touches.length === 1) e.preventDefault(); }, { passive: false });
+document.addEventListener('selectstart', e => { const el = e.target.nodeType === 1 ? e.target : e.target.parentElement; if (!el || !el.closest('input, textarea')) e.preventDefault(); });
 wc.addEventListener('pointerup', e => endPtr(e, false));
 wc.addEventListener('pointercancel', e => endPtr(e, true));
 
