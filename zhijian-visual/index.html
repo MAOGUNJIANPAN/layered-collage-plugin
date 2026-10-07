@@ -139,7 +139,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .obj:hover .ann { transform: translateY(-4px) rotate(-2deg); }
 
 .loom { width: 620px; height: 560px; z-index: 2; }
-.loom canvas { position: absolute; left: 95px; top: 82px; width: 430px; height: 392px; }
+.loom canvas { position: absolute; left: 95px; top: 40px; width: 430px; height: 480px; }
 .loom .shuttle-obj { transition: transform .5s var(--ease-pop); transform-box: fill-box; transform-origin: center; }
 .loom:hover .shuttle-obj { transform: translateX(-16px) rotate(-2deg); }
 .ruler { width: 470px; height: 52px; z-index: 3; --rot: 1.5deg; }
@@ -196,7 +196,6 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 5px, rgba(0,0,0,.15) 5px 7px); }
 
 .loomframe { position: relative; min-width: 0; display: grid; gap: 10px; }
-.beam { height: 22px; border-radius: 11px; background: var(--beech); margin: 0 -10px; }
 .viewport { position: relative; overflow: auto; max-height: min(60vh, 640px); touch-action: pan-x pan-y; }
 .viewport canvas { display: block; margin: 0 auto; }
 .viewport.gesture canvas { touch-action: none; }
@@ -415,8 +414,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
         </svg>
         <canvas id="loomCanvas" class="crayon" aria-hidden="true"></canvas>
         <svg class="art crayon" viewBox="0 0 620 560" aria-hidden="true" style="pointer-events:none">
-          <rect x="70" y="118" width="480" height="20" rx="6" fill="var(--beech-2)"/>
-          <g class="shuttle-obj">
+                    <g class="shuttle-obj">
             <path d="M360 452c40-16 190-20 236-4-44 18-196 20-236 4z" fill="var(--beech-2)"/>
             <path d="M420 447h120" stroke="var(--wicker-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
           </g>
@@ -496,9 +494,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
           <div style="min-width:0">
             <div class="loomframe">
-              <div class="beam crayon" aria-hidden="true"></div>
               <div class="viewport gesture" id="viewport"><canvas id="weaveCanvas"></canvas></div>
-              <div class="beam crayon" aria-hidden="true"></div>
               <div class="frame-foot">
                 <span class="mono" id="sizeLabel">24 根 × 32 行 · 12 × 16 cm</span>
                 <span class="zoom">
@@ -761,18 +757,36 @@ function drawWeave(ctx, o) {
 }
 
 /* 工作台上的织布机：同一张草稿 */
+// 经线从上梁绕到下梁：先画整根经线，再画织好的部分盖在上面
+function drawWarps(ctx, x0, cs, y1, y2, lw) {
+  const warp = S.palette[S.warp].hex, step = Math.max(1, Math.ceil(S.cols / 80));
+  ctx.lineCap = 'round';
+  for (let c = 0; c < S.cols; c += step) {
+    const x = x0 + c * cs + cs / 2;
+    ctx.strokeStyle = warp; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+    ctx.strokeStyle = '#000000'; ctx.globalAlpha = .16; ctx.lineWidth = Math.max(.6, lw * .3);
+    ctx.beginPath(); ctx.moveTo(x + lw * .3, y1); ctx.lineTo(x + lw * .3, y2); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+}
+function drawBeam(ctx, x0, cs, xL, xR, y, h) {
+  // 一根带梳齿的木梁，每根经线卡在一个齿缝里
+  ctx.fillStyle = tok('--beech-2'); rr(ctx, xL, y, xR - xL, h, h / 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.globalAlpha = .22; ctx.fillRect(xL + h / 2, y + h * .62, xR - xL - h, Math.max(1, h * .1)); ctx.globalAlpha = 1;
+  const warp = S.palette[S.warp].hex, step = Math.max(1, Math.ceil(S.cols / 80)), lw = Math.max(1.2, Math.min(cs * .28, h * .4));
+  for (let c = 0; c < S.cols; c += step) {
+    const x = x0 + c * cs + cs / 2;
+    ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(x - lw * .9, y, lw * 1.8, h * .45);
+    ctx.strokeStyle = warp; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y - 1); ctx.lineTo(x, y + h * .5); ctx.stroke();
+  }
+}
 function drawLoomObj() {
   const cv = $('#loomCanvas'), k = Math.min(3, (devicePixelRatio || 1) * 2);
-  const W = 430, H = 392; cv.width = W * k; cv.height = H * k;
+  const W = 430, H = 480; cv.width = W * k; cv.height = H * k;
   const ctx = cv.getContext('2d'); ctx.scale(k, k); ctx.clearRect(0, 0, W, H);
-  const cs = Math.min(W / S.cols, (H - 44) / S.rows);
-  const gw = cs * S.cols, gh = cs * S.rows, x0 = (W - gw) / 2, y0 = H - gh;
-  const warp = S.palette[S.warp].hex, step = Math.max(1, Math.ceil(S.cols / 70));
-  ctx.strokeStyle = warp; ctx.lineWidth = Math.max(1, cs * .3);
-  for (let c = 0; c < S.cols; c += step) { const x = x0 + c * cs + cs / 2; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y0); ctx.stroke(); }
-  ctx.strokeStyle = '#000000'; ctx.globalAlpha = .18; ctx.lineWidth = .8;
-  for (let c = 0; c < S.cols; c += step) { const x = x0 + c * cs + cs / 2 + cs * .15; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y0); ctx.stroke(); }
-  ctx.globalAlpha = 1;
+  const topY = 18, botY = 463;                       // 上下两根梁的中线（对应织布机图里的梁）
+  const cs = Math.min((W - 10) / S.cols, (botY - topY - 70) / S.rows);
+  const gw = cs * S.cols, gh = cs * S.rows, x0 = (W - gw) / 2, y0 = botY - 34 - gh;
+  drawWarps(ctx, x0, cs, topY, botY, Math.max(1, cs * .3));
   drawWeave(ctx, { x0, y0, cs, tex: true });
 }
 
@@ -912,28 +926,34 @@ function commitSegment(seg) {
 
 /* ======================= 织布机场景 ======================= */
 const vp = $('#viewport'), wc = $('#weaveCanvas');
-let geom = { cs: 18, m: 8 }, preview = null, lockRow = null;
+let geom = { cs: 18, mx: 22, my: 40 }, preview = null, lockRow = null;
 function drawScene() {
   const dpr = devicePixelRatio || 1;
-  const cs = Math.max(3, Math.round(18 * S.zoom)), m = S.nums ? 28 : 10;
-  geom = { cs, m };
-  const W = S.cols * cs + m * 2, H = S.rows * cs + m * 2;
+  const cs = Math.max(3, Math.round(18 * S.zoom)), ext = 16, side = S.nums ? 26 : 6;
+  const beamH = clamp(Math.round(cs * 1.1), 16, 26), gapTop = Math.max(cs, 14), gapBot = Math.max(cs * 1.5, 20);
+  const mx = side + ext, top = 4, my = top + beamH + gapTop;
+  const gridBot = my + S.rows * cs, bot = gridBot + gapBot;
+  geom = { cs, mx, my };
+  const W = S.cols * cs + mx * 2, H = bot + beamH + 4 + (S.nums ? 18 : 0);
   wc.width = W * dpr; wc.height = H * dpr; wc.style.width = W + 'px'; wc.style.height = H + 'px';
   const ctx = wc.getContext('2d'); ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
-  drawWeave(ctx, { x0: m, y0: m, cs, tex: S.tex, preview, lock: lockRow, sel: lockRow == null ? S.sel : null });
+  drawWarps(ctx, mx, cs, top + beamH / 2, bot + beamH / 2, Math.max(1.2, cs * .28));
+  drawBeam(ctx, mx, cs, mx - ext, W - mx + ext, top, beamH);
+  drawBeam(ctx, mx, cs, mx - ext, W - mx + ext, bot, beamH);
+  drawWeave(ctx, { x0: mx, y0: my, cs, tex: S.tex, preview, lock: lockRow, sel: lockRow == null ? S.sel : null });
   if (S.nums) {
-    ctx.fillStyle = tok('--muted'); ctx.font = `500 ${Math.min(11, cs * .7)}px JetBrains Mono, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = tok('--muted'); ctx.font = `700 ${Math.min(11, cs * .7)}px Courier Prime, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const every = cs < 12 ? 5 : 1;
-    for (let c = 0; c < S.cols; c++) if ((c + 1) % every === 0 || c === 0) { ctx.fillText(c + 1, m + c * cs + cs / 2, m / 2); ctx.fillText(c + 1, m + c * cs + cs / 2, H - m / 2); }
-    for (let r = 0; r < S.rows; r++) if ((r + 1) % every === 0 || r === 0) ctx.fillText(r + 1, m / 2, m + (S.rows - 1 - r) * cs + cs / 2);
+    for (let c = 0; c < S.cols; c++) if ((c + 1) % every === 0 || c === 0) ctx.fillText(c + 1, mx + c * cs + cs / 2, H - 10);
+    for (let r = 0; r < S.rows; r++) if ((r + 1) % every === 0 || r === 0) ctx.fillText(r + 1, side / 2, my + (S.rows - 1 - r) * cs + cs / 2);
   }
   $('#zoomLabel').textContent = Math.round(S.zoom * 100) + '%';
   $('#sizeLabel').textContent = `${S.cols} 根 × ${S.rows} 行 · ${fmt(S.wCm)} × ${fmt(S.hCm)} cm`;
 }
 function cellAt(e) {
   const b = wc.getBoundingClientRect();
-  const c = Math.floor((e.clientX - b.left - geom.m) / geom.cs), rv = Math.floor((e.clientY - b.top - geom.m) / geom.cs);
+  const c = Math.floor((e.clientX - b.left - geom.mx) / geom.cs), rv = Math.floor((e.clientY - b.top - geom.my) / geom.cs);
   return { c: clamp(c, 0, S.cols - 1), r: clamp(S.rows - 1 - rv, 0, S.rows - 1), inside: c >= 0 && c < S.cols && rv >= 0 && rv < S.rows };
 }
 function flood(r, c, to) {
@@ -965,7 +985,7 @@ function arm() {
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
   preview = weaveSegment(lockRow, ptr.cell.c, ptr.cell.c); drawScene(); rowDiagram();
 }
-function moveShuttle(x) { const b = wc.getBoundingClientRect(); shut.style.left = x + 'px'; shut.style.top = (b.top + geom.m + (S.rows - 1 - lockRow) * geom.cs + geom.cs / 2) + 'px'; }
+function moveShuttle(x) { const b = wc.getBoundingClientRect(); shut.style.left = x + 'px'; shut.style.top = (b.top + geom.my + (S.rows - 1 - lockRow) * geom.cs + geom.cs / 2) + 'px'; }
 function paintAt(p) {
   if (!p.inside) return;
   if (S.tool === 'brush') { if (S.colors[p.r][p.c] < 0) S.over[p.r][p.c] = (p.r + p.c) % 2 === 0; S.colors[p.r][p.c] = S.cur; }
@@ -978,7 +998,7 @@ wc.addEventListener('pointermove', e => {
   if (S.tool === 'shuttle') {
     if (!ptr.armed) { if (dist > 8) { ptr.cancel = true; ptr.moved = true; ring.classList.remove('show'); } return; }
     const b = wc.getBoundingClientRect();
-    const c = clamp(Math.floor((e.clientX - b.left - geom.m) / geom.cs), 0, S.cols - 1);
+    const c = clamp(Math.floor((e.clientX - b.left - geom.mx) / geom.cs), 0, S.cols - 1);
     preview = weaveSegment(lockRow, ptr.cell.c, c); moveShuttle(e.clientX); drawScene();
   } else if (S.tool === 'brush' || S.tool === 'unpick') paintAt(cellAt(e));
 });
@@ -1004,7 +1024,7 @@ $('#curSwatch').addEventListener('click', () => go('yarn'));
 const setZoom = z => { S.zoom = clamp(z, .25, 3); drawScene(); };
 $('#zoomIn').addEventListener('click', () => setZoom(S.zoom * 1.25));
 $('#zoomOut').addEventListener('click', () => setZoom(S.zoom / 1.25));
-$('#zoomFit').addEventListener('click', () => { const w = vp.clientWidth - 24, h = Math.min(vp.clientHeight || 500, innerHeight * .62) - 24; setZoom(Math.min(w / (S.cols * 18), h / (S.rows * 18))); });
+$('#zoomFit').addEventListener('click', () => { const w = vp.clientWidth - 50, h = Math.min(innerHeight * .6, 640) - 100; setZoom(Math.min(w / (S.cols * 18), h / (S.rows * 18))); });
 vp.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); setZoom(S.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
 
 /* 穿梭规则面板 */
@@ -1228,7 +1248,7 @@ $$('[data-proto]').forEach(b => b.addEventListener('click', () => toast(`「${b.
 /* ======================= 杂项 ======================= */
 let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
 let fitted = false;
-function refreshScene() { if (view === 'loom') { if (!fitted && vp.clientWidth && S.cols * 18 + 20 > vp.clientWidth) { fitted = true; $('#zoomFit').click(); } drawScene(); rowDiagram(); ruleVis(); } if (view === 'yarn') { S.pick = S.pick ?? S.cur; yarnScene(); } if (view === 'draft' && !D.result) convert(); }
+function refreshScene() { if (view === 'loom') { if (!fitted && vp.clientWidth) { fitted = true; const h = Math.min(innerHeight * .6, 640); if (S.cols * 18 + 50 > vp.clientWidth || S.rows * 18 + 100 > h) $('#zoomFit').click(); } drawScene(); rowDiagram(); ruleVis(); } if (view === 'yarn') { S.pick = S.pick ?? S.cur; yarnScene(); } if (view === 'draft' && !D.result) convert(); }
 function renderAll() { drawLoomObj(); drawThumb(); drawRuler(); basket(); drawThread(); refreshScene(); }
 
 D.img = makeSample(); showSrc();
