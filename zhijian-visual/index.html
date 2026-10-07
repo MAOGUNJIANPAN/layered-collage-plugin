@@ -124,8 +124,16 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .room .r-cl { fill: var(--cloth); transition: fill .6s; }
 .grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.glow { position: absolute; width: 1500px; height: 1100px; margin: -360px 0 0 -750px; pointer-events: none; opacity: var(--glow); transition: opacity .8s;
-  background: radial-gradient(closest-side, rgba(255, 176, 92, .32), rgba(255, 150, 70, .12) 55%, transparent); mix-blend-mode: screen; z-index: 0; }
+.glow { position: absolute; width: 1600px; height: 1300px; margin: -650px 0 0 -800px; pointer-events: none; opacity: var(--glow); z-index: 0;
+  transform-origin: 50% 50%; will-change: transform, opacity;
+  background: radial-gradient(closest-side, rgba(255, 196, 120, .42), rgba(255, 160, 80, .2) 45%, rgba(255, 150, 70, .06) 75%, transparent); }
+/* 开灯：先闪两下，再从灯泡往外铺开；关灯：光缩回灯泡里 */
+@keyframes lightOn { 0% { opacity: 0; transform: scale(.06); } 10% { opacity: .9; transform: scale(.08); } 17% { opacity: .05; } 27% { opacity: 1; transform: scale(.1); } 33% { opacity: .35; } 42% { opacity: 1; transform: scale(.12); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes lightOff { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.06); } }
+.light-on .glow { animation: lightOn 1.25s cubic-bezier(.2, .7, .2, 1) both; }
+.light-off .glow { animation: lightOff .32s ease-in both; }
+/* 切换昼夜时颜色直接换，不做逐帧渐变（蜡笔滤镜每一帧都要重画，手机上会很慢） */
+.snap, .snap *, .snap *::before, .snap *::after { transition: none !important; }
 .stage.focused .obj:not(.target) { opacity: .28; }
 .stage.focused .deco, .stage.focused .thread { opacity: .28; }
 
@@ -179,13 +187,13 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .stage.focused .toy { pointer-events: none; }
 /* 进场：物件依次落到桌上 */
 @keyframes land { 0% { translate: 0 -46px; opacity: 0; } 55% { translate: 0 5px; opacity: 1; } 78% { translate: 0 -2px; } 100% { translate: 0 0; opacity: 1; } }
-.entering .obj, .entering .deco { animation: land .62s var(--ease-pop) both; animation-delay: var(--d, 0ms); }
+.pre .obj, .pre .deco, .pre .hand { opacity: 0; }
+.entering .obj, .entering .deco { will-change: translate, opacity; animation: land .62s var(--ease-pop) both; animation-delay: var(--d, 0ms); }
 /* 手画字一笔一笔写出来 */
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 .writing .hand path { stroke-dasharray: 1 1; animation: draw .5s steps(9, end) both; animation-delay: var(--wd, 0ms); }
 /* 台灯：接触不良似的闪两下再亮 */
 @keyframes flicker { 0% { opacity: 0; } 12% { opacity: .85; } 20% { opacity: .1; } 34% { opacity: .95; } 42% { opacity: .3; } 60%, 100% { opacity: 1; } }
-.flicker .glow { animation: flicker .7s steps(1, end) both; }
 .flicker .lamp .bulb { animation: flicker .7s steps(1, end) both; }
 @keyframes nudge { 0%, 100% { rotate: 0deg; } 30% { rotate: -3deg; } 60% { rotate: 2deg; } }
 .flicker .lamp { animation: nudge .45s steps(5, end); }
@@ -371,7 +379,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   :root { --cam-ms: 1ms; }
   .scene, .scene.on, .obj, .ann, .toast, .sizesheet { transition-duration: .01ms !important; }
   .press-ring.armed { animation: none; }
-  .entering .obj, .entering .deco, .writing .hand path, .flicker .glow, .flicker .lamp, .flicker .lamp .bulb { animation: none !important; }
+  .entering .obj, .entering .deco, .writing .hand path, .flicker .lamp, .flicker .lamp .bulb, .light-on .glow, .light-off .glow { animation: none !important; }
 }
 </style>
 
@@ -868,7 +876,7 @@ function layout() {
   place($('#spareShuttle'), L.shuttle); place($('#looseBall'), L.ball);
   $('#coasterA').style.transform = 'rotate(-9deg)'; $('#coasterB').style.transform = 'rotate(11deg)';
   $('#spareShuttle').style.transform = `rotate(${L.shuttle[2]}deg)`; $('#looseBall').style.transform = 'rotate(-8deg)';
-  $('#glow').style.left = (L.lamp[0] + 100) + 'px'; $('#glow').style.top = (L.lamp[1] + 130) + 'px';
+  $('#glow').style.left = (L.lamp[0] + 130) + 'px'; $('#glow').style.top = (L.lamp[1] + 160) + 'px';
   drawRoom();
   const th = $('#thread'); th.setAttribute('width', L.w); th.setAttribute('height', L.h); th.setAttribute('viewBox', `0 0 ${L.w} ${L.h}`);
   drawThread();
@@ -931,10 +939,31 @@ function go(name, opts = {}) {
   const delay = reduce ? 0 : (from === 'home' ? 430 : 520);
   setTimeout(() => { if (view !== name) return; const sc = $('#scene-' + name); sc.classList.add('on'); sc.scrollTop = 0; refreshScene(); if (opts.sheet) openSheet(); }, delay);
 }
+function setTheme(t) {
+  const root = document.documentElement; root.classList.add('snap'); root.dataset.theme = t;
+  try { localStorage.setItem('zj-theme', t); } catch (e) {}
+  syncLamp();
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('snap')));
+}
+let lampBusy = false;
+function toggleLamp() {
+  if (lampBusy) return; lampBusy = true; SFX.click();
+  const turnOn = themeNow() !== 'dark';
+  stage.classList.remove('light-on', 'light-off', 'flicker');
+  if (turnOn) {
+    setTheme('dark'); void stage.offsetWidth;
+    stage.classList.add('light-on', 'flicker');
+    setTimeout(() => { stage.classList.remove('light-on', 'flicker'); lampBusy = false; }, reduce ? 0 : 1300);
+    toast('开灯了，夜里也能接着织');
+  } else {
+    stage.classList.add('light-off');
+    setTimeout(() => { setTheme('light'); stage.classList.remove('light-off'); lampBusy = false; toast('关灯了，回到白天'); }, reduce ? 0 : 320);
+  }
+}
 function themeNow() { const t = document.documentElement.dataset.theme; return t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
 function syncLamp() { const on = themeNow() === 'dark'; $('#objLamp').setAttribute('aria-pressed', on); $('#objLamp').setAttribute('aria-label', on ? '台灯（开着）：点一下回到白天' : '台灯（关着）：点一下切到夜间'); }
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-lamp]')) { const next = themeNow() === 'dark' ? 'light' : 'dark'; SFX.click(); if (next === 'dark') { stage.classList.remove('flicker'); void stage.offsetWidth; stage.classList.add('flicker'); setTimeout(() => stage.classList.remove('flicker'), 800); } document.documentElement.dataset.theme = next; try { localStorage.setItem('zj-theme', next); } catch (e) {} syncLamp(); toast(next === 'dark' ? '开灯了，夜里也能接着织' : '关灯了，回到白天'); return; }
+  if (e.target.closest('[data-lamp]')) { toggleLamp(); return; }
   const g = e.target.closest('[data-go]'); if (!g) return;
   go(g.dataset.go, { sheet: !!g.dataset.sheet });
 });
@@ -956,9 +985,9 @@ const SFX = (() => {
   return {
     get on() { return on; },
     set on(v) { on = v; try { localStorage.setItem('zj-sound', v ? 'on' : 'off'); } catch (e) {} },
-    click() { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, .03), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 3; n.connect(f); f.connect(env(c, t, .35, .002, .03)); n.start(t); tone(c, t, 1400, 900, 'square', .04, .04); },
+    click() { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, .02), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3400; f.Q.value = 1.4; n.connect(f); f.connect(env(c, t, .22, .001, .018)); n.start(t); tone(c, t, 210, 120, 'sine', .12, .035); },
     swish(dur = .4) { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, dur + .1), f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(2600, t + dur); n.connect(f); f.connect(env(c, t, .16, dur * .35, dur * .7)); n.start(t); },
-    tok() { const c = ac(); if (!c) return; const t = c.currentTime; tone(c, t, 620, 380, 'triangle', .28, .09); tone(c, t, 1240, 700, 'sine', .08, .05); },
+    tok() { const c = ac(); if (!c) return; const t = c.currentTime; tone(c, t, 480, 320, 'sine', .2, .07); const n = noise(c, .02), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 2; n.connect(f); f.connect(env(c, t, .08, .001, .015)); n.start(t); },
     roll(dur = .6) { const c = ac(); if (!c) return; const t0 = c.currentTime; for (let i = 0; i < 6; i++) { const t = t0 + i * dur / 6 * (1 + i * .12); tone(c, t, 150, 90, 'sine', .14 * (1 - i / 7), .08); } const n = noise(c, dur), f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 380; n.connect(f); f.connect(env(c, t0, .07, .05, dur * .8)); n.start(t0); },
     fwip() { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, .14), f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.setValueAtTime(1800, t); f.frequency.exponentialRampToValueAtTime(5000, t + .12); n.connect(f); f.connect(env(c, t, .07, .02, .1)); n.start(t); }
   };
@@ -1351,11 +1380,20 @@ $('#spareShuttle').addEventListener('click', () => {
     { duration: 520, easing: 'steps(9, end)', fill: 'forwards' });
 });
 // 首页其余物件也给一点声音
-$$('.obj[data-go]').forEach(o => o.addEventListener('pointerdown', () => SFX.tok()));
 
 /* ======================= 进场 ======================= */
 function entrance() {
   if (reduce) return;
+  // 先藏好，等字体加载完、页面真正画出来、并且可见之后再开始，避免动画在加载时就已经播完
+  stage.classList.add('pre');
+  let started = false;
+  const go2 = () => { if (started || document.hidden) return; started = true; requestAnimationFrame(() => requestAnimationFrame(() => { stage.classList.remove('pre'); play(); })); };
+  const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.race([ready, new Promise(r => setTimeout(r, 1500))]).then(() => setTimeout(go2, 120));
+  document.addEventListener('visibilitychange', go2);
+  setTimeout(() => { if (!started) { started = true; stage.classList.remove('pre'); } }, 4000);
+}
+function play() {
   const order = ['#objLoom', '#objRuler', '#objYarn', '#looseBall', '#objDraft', '#coasterA', '#coasterB', '#spareShuttle', '#objLamp'];
   order.forEach((id, i) => { const el = $(id); if (el) el.style.setProperty('--d', (i * 70) + 'ms'); });
   stage.classList.add('entering');
