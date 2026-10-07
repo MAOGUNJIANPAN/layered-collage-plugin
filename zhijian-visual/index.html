@@ -65,7 +65,8 @@
 
 html, body { height: 100%; }
 body { background: var(--wall-a); color: var(--ink); font-family: var(--f-body); font-size: var(--t-md); overflow: hidden; transition: background-color .6s; }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+button { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px dashed var(--now); outline-offset: 3px; }
@@ -917,6 +918,9 @@ function camera(name) {
 }
 
 const NAMES = { loom: '织布机', yarn: '毛线', draft: '草稿' };
+let usingKeys = false;
+addEventListener('keydown', e => { if (e.key === 'Tab' || e.key === 'Escape' || e.key === 'Enter') usingKeys = true; }, true);
+addEventListener('pointerdown', () => { usingKeys = false; }, true);
 function go(name, opts = {}) {
   if (!['home', 'loom', 'yarn', 'draft'].includes(name)) name = 'home';
   if (name === view) { if (opts.sheet) openSheet(); return; }
@@ -930,7 +934,7 @@ function go(name, opts = {}) {
   $('#backBtn').hidden = name === 'home';
   $('#crumbSep').hidden = name === 'home'; $('#crumbHere').textContent = NAMES[name] || '';
   try { history.replaceState(null, '', name === 'home' ? location.pathname : '#' + name); } catch (e) {}
-  if (name === 'home') { setTimeout(() => (from && $(`[data-go="${from}"].obj`))?.focus({ preventScroll: true }), reduce ? 0 : 400); return; }
+  if (name === 'home') { if (usingKeys) setTimeout(() => (from && $(`[data-go="${from}"].obj`))?.focus({ preventScroll: true }), reduce ? 0 : 400); return; }
   const delay = reduce ? 0 : (from === 'home' ? 430 : 520);
   setTimeout(() => { if (view !== name) return; const sc = $('#scene-' + name); sc.classList.add('on'); sc.scrollTop = 0; refreshScene(); if (opts.sheet) openSheet(); }, delay);
 }
