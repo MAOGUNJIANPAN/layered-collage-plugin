@@ -473,7 +473,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       <button class="obj draft" id="objDraft" data-go="draft" aria-label="草稿：进入图片转换与草稿文件">
         <div class="sheet-paper"><div class="paper-bg crayon"></div><canvas class="grid-thumb crayon" id="draftThumb"></canvas><div class="lines"><b id="thumbSize">24×32</b>示例<br>草稿<br><br>no.01</div></div>
         <div class="photo crayon"><canvas id="photoThumb" width="220" height="250"></canvas></div>
-        <span class="ann" style="left:140px;top:-30px"><i>3</i><span class="hand" data-hand="草稿" style="--h:34px"></span><em>draft.</em></span>
+        <span class="ann" style="left:150px;top:-34px"><i>3</i><span class="hand" data-hand="草稿" style="--h:34px"></span><em>draft.</em></span>
       </button>
     </div>
 
@@ -828,7 +828,7 @@ const fmt = n => (Math.round(n * 10) / 10).toString();
 
 /* ======================= 工作台布局与镜头 ======================= */
 const LAYOUT = {
-  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1150, 415], shuttle: [560, 230, 74], ball: [20, 620] },
+  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1175, 382], shuttle: [700, 835, -7], ball: [20, 620] },
   port: { w: 800, h: 1440, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [530, -10], loom: [90, 300], ruler: [165, 885], yarn: [30, 980], draft: [430, 990], coasterA: [600, 1290], coasterB: [615, 730], shuttle: [585, 470, -72], ball: [90, 1265] }
 };
 const SIZE = { loom: [440, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
