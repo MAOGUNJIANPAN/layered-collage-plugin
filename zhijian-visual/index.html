@@ -172,6 +172,26 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .lamp:hover .shade { transform: rotate(-4deg); }
 .lamp .shade { transition: transform .45s var(--ease-pop); transform-box: fill-box; transform-origin: 50% 100%; }
 .deco { position: absolute; pointer-events: none; transition: opacity var(--cam-ms); }
+/* 点着玩的小东西：没有界面跳转，只有动作和声音 */
+.toy { pointer-events: auto; cursor: pointer; border: 0; padding: 0; background: none; }
+.toy svg { display: block; overflow: visible; }
+.toy .spin { transform-box: fill-box; transform-origin: center; }
+.stage.focused .toy { pointer-events: none; }
+/* 进场：物件依次落到桌上 */
+@keyframes land { 0% { translate: 0 -46px; opacity: 0; } 55% { translate: 0 5px; opacity: 1; } 78% { translate: 0 -2px; } 100% { translate: 0 0; opacity: 1; } }
+.entering .obj, .entering .deco { animation: land .62s var(--ease-pop) both; animation-delay: var(--d, 0ms); }
+/* 手画字一笔一笔写出来 */
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.writing .hand path { stroke-dasharray: 1 1; animation: draw .5s steps(9, end) both; animation-delay: var(--wd, 0ms); }
+/* 台灯：接触不良似的闪两下再亮 */
+@keyframes flicker { 0% { opacity: 0; } 12% { opacity: .85; } 20% { opacity: .1; } 34% { opacity: .95; } 42% { opacity: .3; } 60%, 100% { opacity: 1; } }
+.flicker .glow { animation: flicker .7s steps(1, end) both; }
+.flicker .lamp .bulb { animation: flicker .7s steps(1, end) both; }
+@keyframes nudge { 0%, 100% { rotate: 0deg; } 30% { rotate: -3deg; } 60% { rotate: 2deg; } }
+.flicker .lamp { animation: nudge .45s steps(5, end); }
+.snd { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ink); opacity: .75; cursor: pointer; }
+.snd svg { width: 20px; height: 20px; }
+.snd[aria-pressed="false"] .on, .snd[aria-pressed="true"] .off { display: none; }
 .coaster { width: 124px; height: 112px; }
 .coaster .fab { position: absolute; left: 0; right: 0; top: 15px; bottom: 15px; border-radius: 6px; }
 .coaster::before, .coaster::after { content: ""; position: absolute; left: 8px; right: 8px; height: 17px; background: repeating-linear-gradient(90deg, var(--fr) 0 3px, transparent 3px 8px); }
@@ -351,6 +371,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   :root { --cam-ms: 1ms; }
   .scene, .scene.on, .obj, .ann, .toast, .sizesheet { transition-duration: .01ms !important; }
   .press-ring.armed { animation: none; }
+  .entering .obj, .entering .deco, .writing .hand path, .flicker .glow, .flicker .lamp, .flicker .lamp .bulb { animation: none !important; }
 }
 </style>
 
@@ -392,6 +413,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
     <div class="logo"><span class="hand" data-hand="织间" style="--h:30px"></span><small>zhi·jian / v1</small></div>
     <nav class="crumb" aria-label="位置"><span>工作台</span><span id="crumbSep" hidden>/</span><b id="crumbHere"></b></nav>
     <span class="grow"></span>
+    <button class="snd" id="sndBtn" aria-pressed="true" aria-label="音效" title="音效"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     <span class="save" id="saveChip"><span class="dot"></span><span id="saveTxt">示例草稿</span><span class="txt-long">· 需手动保存</span></span>
   </header>
 
@@ -437,8 +459,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       </button>
 
       <div class="deco coaster" id="coasterA" style="--fr:#7FE0C4" aria-hidden="true"><div class="fab crayon" style="background:linear-gradient(#F0532E,#F0532E) 0 0/100% 20px no-repeat, linear-gradient(#C9C23A,#C9C23A) 0 100%/100% 16px no-repeat, repeating-conic-gradient(#2FBF86 0 25%, #C9C23A 0 50%) 0 0/16px 16px"></div></div>
-      <div class="deco" id="spareShuttle" style="width:190px;height:40px" aria-hidden="true"><svg class="crayon" viewBox="0 0 190 40" width="190" height="40"><path d="M4 20C30 4 160 4 186 20 160 36 30 36 4 20z" fill="var(--beech-2)"/><path d="M16 20h30M144 20h30" stroke="var(--wicker-2)" stroke-width="5" stroke-linecap="round" opacity=".55"/><path d="M60 14c20 5 50 5 70 0M60 26c20-5 50-5 70 0" stroke="#C3A0C4" stroke-width="7" fill="none" stroke-linecap="round"/></svg></div>
-      <div class="deco" id="looseBall" style="width:120px;height:90px" aria-hidden="true"><svg class="crayon" viewBox="0 0 120 90" width="120" height="90"><path d="M50 52c-20 18-36 30-48 34" fill="none" stroke="#3AA6D6" stroke-width="4" stroke-linecap="round"/><circle cx="72" cy="44" r="34" fill="#3AA6D6"/><path d="M46 38c14-12 34-14 50-4M42 52c16-12 38-12 56 0M50 66c12-8 28-8 40-2" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4" stroke-linecap="round"/><path d="M62 14c-6 12-6 28 4 40" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/></svg></div>
+      <button class="deco toy" id="spareShuttle" style="width:190px;height:40px" aria-label="一把备用梭子"><svg class="crayon" viewBox="0 0 190 40" width="190" height="40"><g class="spin"><path d="M4 20C30 4 160 4 186 20 160 36 30 36 4 20z" fill="var(--beech-2)"/><path d="M16 20h30M144 20h30" stroke="var(--wicker-2)" stroke-width="5" stroke-linecap="round" opacity=".55"/><path d="M60 14c20 5 50 5 70 0M60 26c20-5 50-5 70 0" stroke="#C3A0C4" stroke-width="7" fill="none" stroke-linecap="round"/></g></svg></button>
+      <button class="deco toy" id="looseBall" style="width:120px;height:90px" aria-label="一团滚出来的蓝毛线"><svg class="crayon" viewBox="0 0 120 90" width="120" height="90"><path class="tail" d="M50 52c-20 18-36 30-48 34" fill="none" stroke="#3AA6D6" stroke-width="4" stroke-linecap="round"/><g class="spin"><circle cx="72" cy="44" r="34" fill="#3AA6D6"/><path d="M46 38c14-12 34-14 50-4M42 52c16-12 38-12 56 0M50 66c12-8 28-8 40-2" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4" stroke-linecap="round"/><path d="M62 14c-6 12-6 28 4 40" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/></g></svg></button>
       <div class="deco coaster nofringe" id="coasterB" aria-hidden="true"><div class="fab crayon" style="top:8px;bottom:8px;background:linear-gradient(#2FBF86,#2FBF86) 0 0/100% 12px no-repeat, linear-gradient(#1F5A34,#1F5A34) 0 12px/100% 40px no-repeat, linear-gradient(#A79E95,#A79E95) 0 52px/44px 32px no-repeat, linear-gradient(#F0532E,#F0532E) 44px 52px/100% 32px no-repeat, #C9C23A"></div></div>
 
       <svg class="thread" id="thread" aria-hidden="true"><path id="threadPath"/></svg>
@@ -896,7 +918,7 @@ const NAMES = { loom: '织布机', yarn: '毛线', draft: '草稿' };
 function go(name, opts = {}) {
   if (!['home', 'loom', 'yarn', 'draft'].includes(name)) name = 'home';
   if (name === view) { if (opts.sheet) openSheet(); return; }
-  const from = view; view = name;
+  const from = view; view = name; SFX.fwip();
   $$('.scene.on').forEach(s => s.classList.remove('on'));
   closeSheet();
   $$('.obj').forEach(o => o.classList.toggle('target', o.dataset.go === name && !o.dataset.sheet));
@@ -912,7 +934,7 @@ function go(name, opts = {}) {
 function themeNow() { const t = document.documentElement.dataset.theme; return t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
 function syncLamp() { const on = themeNow() === 'dark'; $('#objLamp').setAttribute('aria-pressed', on); $('#objLamp').setAttribute('aria-label', on ? '台灯（开着）：点一下回到白天' : '台灯（关着）：点一下切到夜间'); }
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-lamp]')) { const next = themeNow() === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; try { localStorage.setItem('zj-theme', next); } catch (e) {} syncLamp(); toast(next === 'dark' ? '开灯了，夜里也能接着织' : '关灯了，回到白天'); return; }
+  if (e.target.closest('[data-lamp]')) { const next = themeNow() === 'dark' ? 'light' : 'dark'; SFX.click(); if (next === 'dark') { stage.classList.remove('flicker'); void stage.offsetWidth; stage.classList.add('flicker'); setTimeout(() => stage.classList.remove('flicker'), 800); } document.documentElement.dataset.theme = next; try { localStorage.setItem('zj-theme', next); } catch (e) {} syncLamp(); toast(next === 'dark' ? '开灯了，夜里也能接着织' : '关灯了，回到白天'); return; }
   const g = e.target.closest('[data-go]'); if (!g) return;
   go(g.dataset.go, { sheet: !!g.dataset.sheet });
 });
@@ -921,6 +943,29 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape') { if ($('#sizeScrim').classList.contains('on')) closeSheet(); else if (view !== 'home') go('home'); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && view === 'loom' && !/INPUT/.test(document.activeElement.tagName)) { e.preventDefault(); e.shiftKey ? redo() : undo(); }
 });
+
+/* ======================= 音效 =======================
+   全部用 Web Audio 现场合成，不加载音频文件。只在点击之后发声（浏览器也只允许这样）。 */
+const SFX = (() => {
+  let ctx = null, on = true;
+  try { on = localStorage.getItem('zj-sound') !== 'off'; } catch (e) {}
+  const ac = () => { if (!on) return null; try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { return null; } return ctx; };
+  const noise = (c, dur) => { const b = c.createBuffer(1, Math.ceil(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const n = c.createBufferSource(); n.buffer = b; return n; };
+  const env = (c, t, peak, a, r) => { const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + r); g.connect(c.destination); return g; };
+  const tone = (c, t, f1, f2, type, peak, r) => { const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + r); o.connect(env(c, t, peak, .004, r)); o.start(t); o.stop(t + r + .05); };
+  return {
+    get on() { return on; },
+    set on(v) { on = v; try { localStorage.setItem('zj-sound', v ? 'on' : 'off'); } catch (e) {} },
+    click() { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, .03), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 3; n.connect(f); f.connect(env(c, t, .35, .002, .03)); n.start(t); tone(c, t, 1400, 900, 'square', .04, .04); },
+    swish(dur = .4) { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, dur + .1), f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(2600, t + dur); n.connect(f); f.connect(env(c, t, .16, dur * .35, dur * .7)); n.start(t); },
+    tok() { const c = ac(); if (!c) return; const t = c.currentTime; tone(c, t, 620, 380, 'triangle', .28, .09); tone(c, t, 1240, 700, 'sine', .08, .05); },
+    roll(dur = .6) { const c = ac(); if (!c) return; const t0 = c.currentTime; for (let i = 0; i < 6; i++) { const t = t0 + i * dur / 6 * (1 + i * .12); tone(c, t, 150, 90, 'sine', .14 * (1 - i / 7), .08); } const n = noise(c, dur), f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 380; n.connect(f); f.connect(env(c, t0, .07, .05, dur * .8)); n.start(t0); },
+    fwip() { const c = ac(); if (!c) return; const t = c.currentTime; const n = noise(c, .14), f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.setValueAtTime(1800, t); f.frequency.exponentialRampToValueAtTime(5000, t + .12); n.connect(f); f.connect(env(c, t, .07, .02, .1)); n.start(t); }
+  };
+})();
+function syncSnd() { $('#sndBtn').setAttribute('aria-pressed', SFX.on); $('#sndBtn').title = SFX.on ? '音效：开（点一下关闭）' : '音效：关（点一下打开）'; }
+$('#sndBtn').addEventListener('click', () => { SFX.on = !SFX.on; syncSnd(); if (SFX.on) SFX.click(); });
+syncSnd();
 
 /* ======================= 编辑与撤销 ======================= */
 const snap = () => ({ cols: S.cols, rows: S.rows, colors: S.colors.map(r => r.slice()), over: S.over.map(r => r.slice()) });
@@ -992,7 +1037,7 @@ function flood(r, c, to) {
 const ring = $('#pressRing'), shut = $('#shuttleCursor');
 let ptr = null;
 wc.addEventListener('pointerdown', e => {
-  if (e.button !== 0) return;
+  if (e.button !== 0 || sweeping) return;
   const p = cellAt(e); if (!p.inside) return;
   wc.setPointerCapture(e.pointerId);
   ptr = { id: e.pointerId, x: e.clientX, y: e.clientY, cell: p, armed: false, moved: false, t0: performance.now() };
@@ -1032,12 +1077,28 @@ function endPtr(e, cancelled) {
   if (!ptr || e.pointerId !== ptr.id) return;
   cancelAnimationFrame(ptr.raf); ring.classList.remove('show'); shut.classList.remove('show');
   if (S.tool === 'shuttle') {
-    if (ptr.armed && preview && !cancelled) { const seg = preview; preview = null; lockRow = null; commitSegment(seg);
-      toast(`第 ${seg.row + 1} 行织入经线 ${Math.min(...seg.map.keys()) + 1}–${Math.max(...seg.map.keys()) + 1}`); }
+    if (ptr.armed && preview && !cancelled) { sweep(preview); ptr = null; return; }
     else if (!ptr.armed && !ptr.moved && !cancelled) { S.sel = ptr.cell.r; drawScene(); rowDiagram(); }
     preview = null; lockRow = null; drawScene();
   } else if (S.tool === 'brush' || S.tool === 'unpick') renderAll();
   ptr = null;
+}
+// 松手后梭子沿着这一行滑过去，格子按穿梭方向一格一格填上；不超过半秒
+let sweeping = false;
+function sweep(seg) {
+  const keys = [...seg.map.keys()].sort((a, b) => seg.dir > 0 ? a - b : b - a), n = keys.length;
+  const done = () => { sweeping = false; shut.classList.remove('show'); preview = null; lockRow = null; commitSegment(seg); toast(`第 ${seg.row + 1} 行织入经线 ${Math.min(...keys) + 1}–${Math.max(...keys) + 1}`); };
+  if (reduce || n < 2) return done();
+  sweeping = true; lockRow = seg.row; SFX.swish(Math.min(.45, n * .025));
+  const dur = Math.min(450, 120 + n * 18), t0 = performance.now(), b = wc.getBoundingClientRect();
+  shut.classList.add('show');
+  const step = now => {
+    const k = Math.min(n, Math.ceil((now - t0) / dur * n));
+    preview = { row: seg.row, map: new Map(keys.slice(0, k).map(c => [c, seg.map.get(c)])) };
+    const c = keys[Math.max(0, k - 1)]; moveShuttle(b.left + geom.mx + c * geom.cs + geom.cs / 2); drawScene();
+    if (k < n) requestAnimationFrame(step); else setTimeout(done, 60);
+  };
+  requestAnimationFrame(step);
 }
 wc.addEventListener('pointerup', e => endPtr(e, false));
 wc.addEventListener('pointercancel', e => endPtr(e, true));
@@ -1075,7 +1136,7 @@ $('#rgGo').addEventListener('click', () => {
   const r = clamp((+$('#rgRow').value || 1) - 1, 0, S.rows - 1);
   let a = clamp((+$('#rgFrom').value || 1) - 1, 0, S.cols - 1), b = clamp((+$('#rgTo').value || 1) - 1, 0, S.cols - 1);
   if (S.dir < 0) [a, b] = [Math.max(a, b), Math.min(a, b)]; else [a, b] = [Math.min(a, b), Math.max(a, b)];
-  commitSegment(weaveSegment(r, a, b)); toast(`第 ${r + 1} 行织入经线 ${Math.min(a, b) + 1}–${Math.max(a, b) + 1}`);
+  sweep(weaveSegment(r, a, b));
 });
 
 /* 逐行图解 */
@@ -1271,6 +1332,41 @@ const drop = $('#drop');
 drop.addEventListener('drop', e => loadFile(e.dataTransfer.files[0]));
 $$('[data-proto]').forEach(b => b.addEventListener('click', () => toast(`「${b.dataset.proto}」的位置在这里。原型不读写文件，接入功能版本后生效。`)));
 
+/* ======================= 点着玩的小东西 ======================= */
+// 蓝线团：点一下滚出去一段，再点滚回来，线头留在原地拉长；梭子：点一下翻个面
+let ballOut = false;
+$('#looseBall').addEventListener('click', () => {
+  const el = $('#looseBall'), g = el.querySelector('.spin'), tail = el.querySelector('.tail'), dx = ballOut ? 0 : 90;
+  ballOut = !ballOut; SFX.roll(.6);
+  if (reduce) { g.style.transform = `translate(${dx}px,0)`; return; }
+  g.animate([{ transform: `translate(${ballOut ? 0 : 90}px,0) rotate(0deg)` }, { transform: `translate(${dx * .92 + (ballOut ? 0 : 6)}px,0) rotate(${ballOut ? 300 : -300}deg)` }, { transform: `translate(${dx}px,0) rotate(${ballOut ? 340 : -340}deg)` }],
+    { duration: 700, easing: 'steps(12, end)', fill: 'forwards' });
+  tail.animate([{ d: `path("M50 52c-20 18-36 30-48 34")` }, { d: `path("M${50 + dx} 52c-${30 + dx * .6} 22-${46 + dx * .3} 30-${48} 34")` }], { duration: 700, easing: 'steps(12, end)', fill: 'forwards' });
+});
+let flips = 0;
+$('#spareShuttle').addEventListener('click', () => {
+  const g = $('#spareShuttle .spin'); flips++; SFX.tok(); setTimeout(() => SFX.tok(), 330);
+  if (reduce) return;
+  g.animate([{ transform: `translateY(0) rotate(${(flips - 1) * 180}deg)` }, { transform: `translateY(-26px) rotate(${(flips - 1) * 180 + 120}deg)`, offset: .5 }, { transform: `translateY(0) rotate(${flips * 180}deg)` }],
+    { duration: 520, easing: 'steps(9, end)', fill: 'forwards' });
+});
+// 首页其余物件也给一点声音
+$$('.obj[data-go]').forEach(o => o.addEventListener('pointerdown', () => SFX.tok()));
+
+/* ======================= 进场 ======================= */
+function entrance() {
+  if (reduce) return;
+  const order = ['#objLoom', '#objRuler', '#objYarn', '#looseBall', '#objDraft', '#coasterA', '#coasterB', '#spareShuttle', '#objLamp'];
+  order.forEach((id, i) => { const el = $(id); if (el) el.style.setProperty('--d', (i * 70) + 'ms'); });
+  stage.classList.add('entering');
+  // 字在物件落稳之后开始写
+  const hands = $$('.hand'); let t = 650;
+  hands.forEach(h => { h.querySelectorAll('path').forEach(p => { p.setAttribute('pathLength', '1'); p.style.setProperty('--wd', t + 'ms'); t += 70; }); });
+  document.body.classList.add('writing');
+  setTimeout(() => stage.classList.remove('entering'), 1400);
+  setTimeout(() => document.body.classList.remove('writing'), t + 600);
+}
+
 /* ======================= 杂项 ======================= */
 let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
 let fitted = false;
@@ -1321,7 +1417,7 @@ $$('.hand[data-hand]').forEach(el => { const h = parseFloat(getComputedStyle(el)
 D.img = makeSample(); showSrc();
 // 默认是关灯后的夜间配色；点台灯切到白天，选择记在这台设备上
 { let t = null; try { t = localStorage.getItem('zj-theme'); } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; }
-layout(); renderAll(); ruleVis(); syncLamp();
+layout(); renderAll(); ruleVis(); syncLamp(); entrance();
 new ResizeObserver(() => layout()).observe(stage);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderAll(); syncLamp(); });
 new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
