@@ -76,6 +76,7 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- 顶栏 ---------- */
 .bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; position: absolute; left: 0; right: 0; top: 0; z-index: 20; pointer-events: none; }
 .bar > * { pointer-events: auto; }
+.in-scene .bar { background: var(--base); pointer-events: auto; transition: background-color .3s; }
 .logo { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .logo small { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
 .crumb { display: flex; align-items: center; gap: 8px; margin-left: 10px; font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
@@ -185,13 +186,6 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .toy svg { display: block; overflow: visible; }
 .toy .spin { transform-box: fill-box; transform-origin: center; }
 .stage.focused .toy { pointer-events: none; }
-/* 进场：物件依次落到桌上 */
-@keyframes land { 0% { translate: 0 -46px; opacity: 0; } 55% { translate: 0 5px; opacity: 1; } 78% { translate: 0 -2px; } 100% { translate: 0 0; opacity: 1; } }
-.pre .obj, .pre .deco, .pre .hand { opacity: 0; }
-.entering .obj, .entering .deco { will-change: translate, opacity; animation: land .62s var(--ease-pop) both; animation-delay: var(--d, 0ms); }
-/* 手画字一笔一笔写出来 */
-@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-.writing .hand path { stroke-dasharray: 1 1; animation: draw .5s steps(9, end) both; animation-delay: var(--wd, 0ms); }
 /* 台灯：接触不良似的闪两下再亮 */
 @keyframes flicker { 0% { opacity: 0; } 12% { opacity: .85; } 20% { opacity: .1; } 34% { opacity: .95; } 42% { opacity: .3; } 60%, 100% { opacity: 1; } }
 .flicker .lamp .bulb { animation: flicker .7s steps(1, end) both; }
@@ -379,7 +373,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   :root { --cam-ms: 1ms; }
   .scene, .scene.on, .obj, .ann, .toast, .sizesheet { transition-duration: .01ms !important; }
   .press-ring.armed { animation: none; }
-  .entering .obj, .entering .deco, .writing .hand path, .flicker .lamp, .flicker .lamp .bulb, .light-on .glow, .light-off .glow { animation: none !important; }
+  .flicker .lamp, .flicker .lamp .bulb, .light-on .glow, .light-off .glow { animation: none !important; }
 }
 </style>
 
@@ -927,6 +921,7 @@ function go(name, opts = {}) {
   if (!['home', 'loom', 'yarn', 'draft'].includes(name)) name = 'home';
   if (name === view) { if (opts.sheet) openSheet(); return; }
   const from = view; view = name; SFX.fwip();
+  $('.app').classList.toggle('in-scene', name !== 'home');
   $$('.scene.on').forEach(s => s.classList.remove('on'));
   closeSheet();
   $$('.obj').forEach(o => o.classList.toggle('target', o.dataset.go === name && !o.dataset.sheet));
@@ -1393,30 +1388,6 @@ $('#spareShuttle').addEventListener('click', () => {
 });
 // 首页其余物件也给一点声音
 
-/* ======================= 进场 ======================= */
-function entrance() {
-  if (reduce) return;
-  // 先藏好，等字体加载完、页面真正画出来、并且可见之后再开始，避免动画在加载时就已经播完
-  stage.classList.add('pre');
-  let started = false;
-  const go2 = () => { if (started || document.hidden) return; started = true; requestAnimationFrame(() => requestAnimationFrame(() => { stage.classList.remove('pre'); play(); })); };
-  const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-  Promise.race([ready, new Promise(r => setTimeout(r, 1500))]).then(() => setTimeout(go2, 120));
-  document.addEventListener('visibilitychange', go2);
-  setTimeout(() => { if (!started) { started = true; stage.classList.remove('pre'); } }, 4000);
-}
-function play() {
-  const order = ['#objLoom', '#objRuler', '#objYarn', '#looseBall', '#objDraft', '#coasterA', '#coasterB', '#spareShuttle', '#objLamp'];
-  order.forEach((id, i) => { const el = $(id); if (el) el.style.setProperty('--d', (i * 70) + 'ms'); });
-  stage.classList.add('entering');
-  // 字在物件落稳之后开始写
-  const hands = $$('.hand'); let t = 650;
-  hands.forEach(h => { h.querySelectorAll('path').forEach(p => { p.setAttribute('pathLength', '1'); p.style.setProperty('--wd', t + 'ms'); t += 70; }); });
-  document.body.classList.add('writing');
-  setTimeout(() => stage.classList.remove('entering'), 1400);
-  setTimeout(() => document.body.classList.remove('writing'), t + 600);
-}
-
 /* ======================= 杂项 ======================= */
 let tt; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
 let fitted = false;
@@ -1467,7 +1438,7 @@ $$('.hand[data-hand]').forEach(el => { const h = parseFloat(getComputedStyle(el)
 D.img = makeSample(); showSrc();
 // 默认是关灯后的夜间配色；点台灯切到白天，选择记在这台设备上
 { let t = null; try { t = localStorage.getItem('zj-theme'); } catch (e) {} document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'; }
-layout(); renderAll(); ruleVis(); syncLamp(); entrance();
+layout(); renderAll(); ruleVis(); syncLamp();
 new ResizeObserver(() => layout()).observe(stage);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { renderAll(); syncLamp(); });
 new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
