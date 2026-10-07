@@ -179,7 +179,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .thread { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; overflow: visible; transition: opacity var(--cam-ms); }
 .thread path { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke .5s; }
 
-.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--ink); opacity: .75; white-space: nowrap; transition: opacity .3s; z-index: 5; }
+.hint-floor { position: absolute; left: 50%; bottom: 12px; padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--cloth) 82%, transparent); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--ink); opacity: .75; white-space: nowrap; transition: opacity .3s; z-index: 5; }
 .stage.focused .hint-floor { opacity: 0 !important; }
 
 /* ---------- 场景 ---------- */
@@ -827,9 +827,10 @@ function drawRuler() {
 const fmt = n => (Math.round(n * 10) / 10).toString();
 
 /* ======================= 工作台布局与镜头 ======================= */
+// frame：首页镜头要铺满的取景框。框外的东西会被画面边缘裁掉，像静物插画那样
 const LAYOUT = {
-  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1175, 382], shuttle: [700, 835, -7], ball: [20, 620] },
-  port: { w: 800, h: 1440, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [530, -10], loom: [90, 300], ruler: [165, 885], yarn: [30, 980], draft: [430, 990], coasterA: [600, 1290], coasterB: [615, 730], shuttle: [585, 470, -72], ball: [90, 1265] }
+  land: { w: 1280, h: 900, frame: [30, 70, 1280, 820], room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1050, -40], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [890, 560], coasterA: [650, 715], coasterB: [1185, 392], shuttle: [700, 850, -7], ball: [-20, 640] },
+  port: { w: 800, h: 1440, frame: [10, 50, 780, 1330], room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [560, -40], loom: [80, 300], ruler: [165, 885], yarn: [-40, 980], draft: [450, 1000], coasterA: [620, 1320], coasterB: [615, 730], shuttle: [585, 470, -72], ball: [-20, 1270] }
 };
 const SIZE = { loom: [440, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
 const stage = $('#stage'), world = $('#world');
@@ -876,10 +877,14 @@ function drawThread() {
 function camera(name) {
   const W = stage.clientWidth, H = stage.clientHeight;
   let x, y, w, h, pad;
-  let foot = 0;
-  if (name === 'home') { x = 0; y = 0; w = L.w; h = L.h; pad = Math.min(W, H) < 500 ? 10 : 28; foot = 34; }
-  else { const p = L[name], s = SIZE[name]; x = p[0]; y = p[1]; w = s[0]; h = s[1]; pad = -Math.min(w, h) * .12; }
-  const sc = Math.min((W - 2 * pad) / w, (H - foot - 2 * pad) / h);
+  let foot = 0, sc;
+  if (name === 'home') {
+    // 铺满取景框：屏幕比例和取景框不一样时，宁可裁掉一点边，也不在四周留空
+    [x, y, w, h] = L.frame; pad = 0; foot = 0;
+    const contain = Math.min(W / w, H / h), cover = Math.max(W / w, H / h);
+    sc = Math.min(cover, contain * 1.12);
+  } else { const p = L[name], s = SIZE[name]; x = p[0]; y = p[1]; w = s[0]; h = s[1]; pad = -Math.min(w, h) * .12; }
+  if (sc == null) sc = Math.min((W - 2 * pad) / w, (H - foot - 2 * pad) / h);
   const tx = W / 2 - (x + w / 2) * sc, ty = (H - foot) / 2 - (y + h / 2) * sc;
   world.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
 }
