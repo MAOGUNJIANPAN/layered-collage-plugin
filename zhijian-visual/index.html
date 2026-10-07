@@ -80,11 +80,13 @@ button, input, select { font: inherit; color: inherit; }
 /* ---------- 顶栏 ---------- */
 .bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; position: absolute; left: 0; right: 0; top: 0; z-index: 20; pointer-events: none; }
 .bar > * { pointer-events: auto; }
-.in-scene .bar { background: linear-gradient(90deg, var(--wall-a) 78%, var(--wall-b) 78%); pointer-events: auto; transition: background-color .3s; }
+.in-scene .bar { background: var(--base); pointer-events: auto; transition: background-color .3s; }
 .logo { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .logo small { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
 .crumb { display: flex; align-items: center; gap: 8px; margin-left: 10px; font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
 .crumb b { color: var(--ink); font-weight: 500; }
+.crumb .home-only { opacity: .62; margin-top: 4px; }
+.in-scene .crumb .home-only, .app:not(.in-scene) .crumb .scene-only { display: none; }
 .bar .grow { flex: 1; }
 .save { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-type); font-size: var(--t-sm); color: var(--ink); opacity: .8; white-space: nowrap; }
 .save .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); opacity: .6; }
@@ -211,19 +213,16 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .stage.focused .hint-floor { opacity: 0 !important; }
 
 /* ---------- 场景 ---------- */
-.scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-top: 64px; padding-bottom: 32px; background: var(--cloth); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
+.scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-top: 64px; padding-bottom: 32px; background: var(--base); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
 .scene > * { position: relative; }
-/* 进到物件里，仍然是同一个房间：顶上一段墙，墙角在右边，下面是桌面 */
-.scene::before, .scene::after { content: ""; position: absolute; top: 0; height: 196px; pointer-events: none; transition: background-color .6s; }
-.scene::before { left: 0; right: 0; background: var(--wall-a); clip-path: polygon(0 0, 100% 0, 100% 58%, 78% 72%, 0 100%); }
-.scene::after { left: 78%; right: 0; background: var(--wall-b); clip-path: polygon(0 0, 100% 0, 100% 58%, 0 72%); }
-/* 桌面上的字：灰字调成桌面色和墨色的混合，保证在蓝桌面上看得清 */
-.scene { --muted: color-mix(in srgb, var(--ink) 72%, var(--cloth)); --line: color-mix(in srgb, var(--ink) 28%, transparent); }
+.loom-head { justify-content: flex-end; margin-bottom: 8px; }
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* 点进物件以后用安静的浅底，不让大面积颜色影响看配色 */
 .scene.on { opacity: 1; visibility: visible; transform: none; transition: opacity .36s ease, transform .5s var(--ease-pop), visibility 0s; }
 .scene-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 auto 14px; max-width: 1240px; }
 .eyebrow { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .eyebrow i { font-style: normal; font-weight: 700; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); font-size: 13px; }
-.scene-head h2 { margin: 14px 0 0; line-height: 0; }
+.scene-head h2 { margin: 4px 0 0; line-height: 0; }
 .scene-head .sub { margin: 10px 0 0; font-size: var(--t-xs); font-weight: 400; color: var(--muted); letter-spacing: .04em; }
 .scene-body { max-width: 1240px; margin: 0 auto; }
 .panel { min-width: 0; }
@@ -430,7 +429,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   <header class="bar">
     <button class="btn icon-btn" id="backBtn" aria-label="回到工作台" title="回到工作台 (Esc)" hidden><svg><use href="#i-back"/></svg></button>
     <div class="logo"><span class="hand" data-hand="织间" style="--h:30px"></span><small>zhi·jian / v1</small></div>
-    <nav class="crumb" aria-label="位置"><span>工作台</span><span id="crumbSep" hidden>/</span><b id="crumbHere"></b></nav>
+    <nav class="crumb" aria-label="位置"><span class="hand home-only" data-hand="工作台" style="--h:20px"></span><span class="scene-only">工作台</span><span id="crumbSep" hidden>/</span><b id="crumbHere"></b></nav>
     <span class="grow"></span>
     <button class="snd" id="sndBtn" aria-pressed="true" aria-label="音效" title="音效"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     <span class="save" id="saveChip"><span class="dot"></span><span id="saveTxt">示例草稿</span><span class="txt-long">· 需手动保存</span></span>
@@ -521,9 +520,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 
     <!-- 织布机场景 -->
     <section class="scene" id="scene-loom" aria-label="织布机">
-      <div class="scene-head">
-        <div><div class="eyebrow"><i>1</i>loom · 穿线试织</div><h2><span class="hand" data-hand="织布机" style="--h:40px"></span></h2><p class="sub">长按一行，拖动穿梭</p></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="scene-head loom-head">
+        <div class="head-actions">
           <button class="btn" data-sheet-open><svg><use href="#i-size"/></svg>调整织面</button>
           <button class="btn" data-go="yarn">换线</button>
         </div>
@@ -616,7 +614,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
     <!-- 毛线场景 -->
     <section class="scene" id="scene-yarn" aria-label="毛线">
       <div class="scene-head">
-        <div><div class="eyebrow"><i>2</i>yarn · 选线</div><h2><span class="hand" data-hand="毛线" style="--h:40px"></span></h2><p class="sub">挑一团线，带去织布机</p></div>
+        <div><h2><span class="hand" data-hand="毛线" style="--h:40px"></span></h2><p class="sub">挑一团线，带去织布机</p></div>
         <span class="count mono" id="yarnCount2">8 / 24 色</span>
       </div>
       <div class="scene-body yarn-layout">
@@ -641,7 +639,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
     <!-- 草稿场景 -->
     <section class="scene" id="scene-draft" aria-label="草稿">
       <div class="scene-head">
-        <div><div class="eyebrow"><i>3</i>draft · 图片转换</div><h2><span class="hand" data-hand="草稿" style="--h:40px"></span></h2><p class="sub">把照片变成配色草稿</p></div>
+        <div><h2><span class="hand" data-hand="草稿" style="--h:40px"></span></h2><p class="sub">把照片变成配色草稿</p></div>
         <span class="count">在本机处理，图片不会上传</span>
       </div>
       <div class="scene-body">
