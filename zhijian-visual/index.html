@@ -9,8 +9,8 @@
 :root {
   --wall-a: #ECE8DE;        /* 左墙：米白纸 */
   --wall-b: #2A9C7D;        /* 右墙：青绿 */
-  --cloth: #F5F2EA;         /* 桌布底色 */
-  --stripe: #6CB2EC;        /* 桌布条纹：天蓝 */
+  --cloth: #7DB8E8;         /* 桌面：一整块天蓝 */
+  --base: #F5F2EA;          /* 各个场景的米白底 */
   --lemon: #F1E46A;         /* 柠檬黄：选中的工具 */
   --desk: #F5F2EA;
   --paper: #FBF8F0;
@@ -46,7 +46,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --wall-a: #2B2925; --wall-b: #173F35; --cloth: #36342F; --stripe: #33597D; --lemon: #8C8231; --desk: #36342F;
+    --wall-a: #2B2925; --wall-b: #173F35; --cloth: #2D4760; --base: #36342F; --lemon: #8C8231; --desk: #36342F;
     --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
     --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
     --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
@@ -55,7 +55,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --wall-a: #2B2925; --wall-b: #173F35; --cloth: #36342F; --stripe: #33597D; --lemon: #8C8231; --desk: #36342F;
+  --wall-a: #2B2925; --wall-b: #173F35; --cloth: #2D4760; --base: #36342F; --lemon: #8C8231; --desk: #36342F;
   --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
   --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
   --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
@@ -74,11 +74,11 @@ button, input, select { font: inherit; color: inherit; }
 .app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
 
 /* ---------- 顶栏 ---------- */
-.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--wall-a); position: relative; z-index: 20; transition: background-color .6s; }
+.bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--wall-a); position: relative; z-index: 20; transition: background-color .6s; }
 .logo { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .logo small { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); }
-.crumb { display: flex; align-items: center; gap: 6px; font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
-.crumb b { color: var(--ink); font-weight: 700; }
+.crumb { display: flex; align-items: center; gap: 8px; margin-left: 10px; font-size: var(--t-sm); color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
+.crumb b { color: var(--ink); font-weight: 500; }
 .bar .grow { flex: 1; }
 .save { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); white-space: nowrap; }
 .save .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); opacity: .6; }
@@ -120,7 +120,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: .35; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .24  0 0 0 .6 -.2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .room .r-wa { fill: var(--wall-a); transition: fill .6s; } .room .r-wb { fill: var(--wall-b); transition: fill .6s; }
-.room .r-cl { fill: var(--cloth); transition: fill .6s; } .room .r-st { fill: var(--stripe); transition: fill .6s; }
+.room .r-cl { fill: var(--cloth); transition: fill .6s; }
 .grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .glow { position: absolute; width: 1500px; height: 1100px; margin: -360px 0 0 -750px; pointer-events: none; opacity: var(--glow); transition: opacity .8s;
@@ -188,7 +188,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .scene-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 auto 14px; max-width: 1240px; }
 .eyebrow { font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .eyebrow i { font-style: normal; font-weight: 700; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); font-size: 13px; }
-.scene-head h2 { margin: 8px 0 0; display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; font-weight: 500; font-size: var(--t-md); color: var(--muted); }
+.scene-head h2 { margin: 14px 0 0; line-height: 0; }
+.scene-head .sub { margin: 10px 0 0; font-size: var(--t-xs); font-weight: 400; color: var(--muted); letter-spacing: .04em; }
 .scene-body { max-width: 1240px; margin: 0 auto; }
 .panel { min-width: 0; }
 .stitch { border: 0; border-top: 1.5px dashed var(--line); margin: 0; }
@@ -282,7 +283,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   background-image: radial-gradient(circle at 34% 30%, rgba(255,255,255,.32) 0 12%, transparent 38%), repeating-linear-gradient(-34deg, transparent 0 7px, rgba(0,0,0,.14) 7px 9px), repeating-linear-gradient(52deg, transparent 0 11px, rgba(255,255,255,.12) 11px 12px), radial-gradient(circle at 60% 70%, transparent 55%, rgba(0,0,0,.18) 72%); }
 .ballbtn:hover .b { transform: rotate(-16deg) translateY(-4px); }
 .ballbtn .nm { font-size: var(--t-xs); font-weight: 500; }
-.ballbtn[aria-pressed="true"] .b { box-shadow: 0 0 0 4px var(--cloth), 0 0 0 6px var(--ink); }
+.ballbtn[aria-pressed="true"] .b { box-shadow: 0 0 0 4px var(--base), 0 0 0 6px var(--ink); }
 .ballbtn .badges { position: absolute; top: 0; right: 4px; display: flex; gap: 3px; }
 .badge { font-family: var(--f-type); font-size: 12px; font-weight: 700; line-height: 1; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .badge.w { background: var(--ink); color: var(--ink-fg); box-shadow: none; }
@@ -388,7 +389,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
   <header class="bar">
     <button class="btn icon-btn" id="backBtn" aria-label="回到工作台" title="回到工作台 (Esc)" hidden><svg><use href="#i-back"/></svg></button>
     <div class="logo"><span class="hand" data-hand="织间" style="--h:30px"></span><small>zhi·jian / v1</small></div>
-    <nav class="crumb" aria-label="位置"><span>( 工作台</span><span id="crumbSep" hidden>·</span><b id="crumbHere"></b><span>)</span></nav>
+    <nav class="crumb" aria-label="位置"><span>工作台</span><span id="crumbSep" hidden>/</span><b id="crumbHere"></b></nav>
     <span class="grow"></span>
     <span class="save" id="saveChip"><span class="dot"></span><span id="saveTxt">示例草稿</span><span class="txt-long">· 需手动保存</span></span>
   </header>
@@ -406,7 +407,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
           <g class="shade"><path d="M10 112C2 64 46 22 104 24c58 2 92 40 86 84-2 14-34 20-90 20S14 126 10 112z" fill="var(--lamp)"/>
           <path d="M42 54c18-14 40-20 62-18" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="8" stroke-linecap="round"/></g>
         </svg>
-        <span class="ann" style="left:-205px;top:120px"><i>4</i><span class="hand" data-hand="台灯" style="--h:30px"></span><em>lamp.</em></span>
+        <span class="ann" style="left:-260px;top:150px"><i>4</i><span class="hand" data-hand="台灯" style="--h:30px"></span><em>lamp.</em></span>
       </button>
 
       <button class="obj loom" id="objLoom" data-go="loom" aria-label="织布机：进入穿线试织">
@@ -474,11 +475,11 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       </button>
     </div>
 
-    <div class="hint-floor">( 点物件进入 · 尺子调尺寸 · 台灯开关夜间 )</div>
+    <div class="hint-floor">点物件进入 · 尺子调尺寸 · 台灯开关夜间</div>
     <!-- 织布机场景 -->
     <section class="scene" id="scene-loom" aria-label="织布机">
       <div class="scene-head">
-        <div><div class="eyebrow"><i>1</i>loom · 穿线试织</div><h2><span class="hand" data-hand="织布机" style="--h:40px"></span>长按一行，拖动穿梭</h2></div>
+        <div><div class="eyebrow"><i>1</i>loom · 穿线试织</div><h2><span class="hand" data-hand="织布机" style="--h:40px"></span></h2><p class="sub">长按一行，拖动穿梭</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" data-sheet-open><svg><use href="#i-size"/></svg>调整织面</button>
           <button class="btn" data-go="yarn">换线</button>
@@ -571,7 +572,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
     <!-- 毛线场景 -->
     <section class="scene" id="scene-yarn" aria-label="毛线">
       <div class="scene-head">
-        <div><div class="eyebrow"><i>2</i>yarn · 选线</div><h2><span class="hand" data-hand="毛线" style="--h:40px"></span>挑一团线，带去织布机</h2></div>
+        <div><div class="eyebrow"><i>2</i>yarn · 选线</div><h2><span class="hand" data-hand="毛线" style="--h:40px"></span></h2><p class="sub">挑一团线，带去织布机</p></div>
         <span class="count mono" id="yarnCount2">8 / 24 色</span>
       </div>
       <div class="scene-body yarn-layout">
@@ -596,8 +597,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
     <!-- 草稿场景 -->
     <section class="scene" id="scene-draft" aria-label="草稿">
       <div class="scene-head">
-        <div><div class="eyebrow"><i>3</i>draft · 图片转换</div><h2><span class="hand" data-hand="草稿" style="--h:40px"></span>把照片变成配色草稿</h2></div>
-        <span class="count">( 在本机处理 · 图片不会上传 )</span>
+        <div><div class="eyebrow"><i>3</i>draft · 图片转换</div><h2><span class="hand" data-hand="草稿" style="--h:40px"></span></h2><p class="sub">把照片变成配色草稿</p></div>
+        <span class="count">在本机处理，图片不会上传</span>
       </div>
       <div class="scene-body">
         <div class="draft-layout">
@@ -848,32 +849,17 @@ function layout() {
 }
 function drawRoom() {
   // 房间一角：左墙、右墙，桌面的后沿斜着往右上走，到墙角再折向右下。
-  // 桌布条纹是事先算好抖动的手绘色带，不用滤镜（大面积滤镜在手机上太占内存，会导致页面打不开）。
+  // 只用几块平涂色块分割空间；大面积色块不加滤镜（手机上太占内存，会导致页面打不开）。
   const r = L.room, M = 600, svg = $('#room');
   const x0 = -M, x1 = L.w + M, y0 = -M, y1 = L.h + M;
   const ly = r.ly + (r.cy - r.ly) / r.cx * x0, ry = r.cy + r.k * (x1 - r.cx);
   svg.setAttribute('width', x1 - x0); svg.setAttribute('height', y1 - y0);
   svg.style.left = x0 + 'px'; svg.style.top = y0 + 'px';
   svg.setAttribute('viewBox', `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
-  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - .5;
-  const ang = -22 * Math.PI / 180, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux;
-  const len = Math.hypot(x1 - x0, y1 - y0), cxm = (x0 + x1) / 2, cym = (y0 + y1) / 2;
-  let bands = '';
-  for (let o = -len / 2; o < len / 2; o += 74) {
-    const top = [], bot = [];
-    for (let t = -len / 2; t <= len / 2; t += 46) {
-      const w1 = rnd() * 7, w2 = rnd() * 7;
-      top.push([cxm + ux * t + nx * (o + w1), cym + uy * t + ny * (o + w1)]);
-      bot.unshift([cxm + ux * t + nx * (o + 30 + w2), cym + uy * t + ny * (o + 30 + w2)]);
-    }
-    bands += `<path class="r-st" d="M${[...top, ...bot].map(p => p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join('L')}Z"/>`;
-  }
   const table = `${x0},${ly} ${r.cx},${r.cy} ${x1},${ry} ${x1},${y1} ${x0},${y1}`;
-  svg.innerHTML = `<defs><clipPath id="tableClip"><polygon points="${table}"/></clipPath></defs>
-    <polygon class="r-wa" points="${x0},${y0} ${r.cx},${y0} ${r.cx},${r.cy} ${x0},${ly}"/>
+  svg.innerHTML = `<polygon class="r-wa" points="${x0},${y0} ${r.cx},${y0} ${r.cx},${r.cy} ${x0},${ly}"/>
     <polygon class="r-wb" points="${r.cx},${y0} ${x1},${y0} ${x1},${ry} ${r.cx},${r.cy}"/>
-    <polygon class="r-cl" points="${table}"/>
-    <g clip-path="url(#tableClip)">${bands}</g>`;
+    <polygon class="r-cl" points="${table}"/>`;
 }
 function drawThread() {
   const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 592, ey = L.loom[1] + 450;
