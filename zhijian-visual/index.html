@@ -145,7 +145,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .ann .lead { position: absolute; height: 0; border-top: 2px dashed var(--muted); transform-origin: 0 0; }
 .obj:hover .ann { transform: translateY(-4px) rotate(-2deg); }
 
-.loom { width: 440px; height: 560px; z-index: 2; }
+.loom { width: 440px; height: 560px; z-index: 2; --rot: -4deg; }
 .loom canvas { position: absolute; left: 62px; top: 40px; width: 316px; height: 480px; }
 .loom .shuttle-obj { transition: transform .5s var(--ease-pop); transform-box: fill-box; transform-origin: center; }
 .loom:hover .shuttle-obj { transform: translateX(-16px) rotate(-2deg); }
@@ -436,6 +436,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       </button>
 
       <div class="deco coaster" id="coasterA" style="--fr:#7FE0C4" aria-hidden="true"><div class="fab crayon" style="background:linear-gradient(#F0532E,#F0532E) 0 0/100% 20px no-repeat, linear-gradient(#C9C23A,#C9C23A) 0 100%/100% 16px no-repeat, repeating-conic-gradient(#2FBF86 0 25%, #C9C23A 0 50%) 0 0/16px 16px"></div></div>
+      <div class="deco" id="spareShuttle" style="width:190px;height:40px" aria-hidden="true"><svg class="crayon" viewBox="0 0 190 40" width="190" height="40"><path d="M4 20C30 4 160 4 186 20 160 36 30 36 4 20z" fill="var(--beech-2)"/><path d="M16 20h30M144 20h30" stroke="var(--wicker-2)" stroke-width="5" stroke-linecap="round" opacity=".55"/><path d="M60 14c20 5 50 5 70 0M60 26c20-5 50-5 70 0" stroke="#C3A0C4" stroke-width="7" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="deco" id="looseBall" style="width:120px;height:90px" aria-hidden="true"><svg class="crayon" viewBox="0 0 120 90" width="120" height="90"><path d="M50 52c-20 18-36 30-48 34" fill="none" stroke="#3AA6D6" stroke-width="4" stroke-linecap="round"/><circle cx="72" cy="44" r="34" fill="#3AA6D6"/><path d="M46 38c14-12 34-14 50-4M42 52c16-12 38-12 56 0M50 66c12-8 28-8 40-2" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="4" stroke-linecap="round"/><path d="M62 14c-6 12-6 28 4 40" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="4" stroke-linecap="round"/></svg></div>
       <div class="deco coaster nofringe" id="coasterB" aria-hidden="true"><div class="fab crayon" style="top:8px;bottom:8px;background:linear-gradient(#2FBF86,#2FBF86) 0 0/100% 12px no-repeat, linear-gradient(#1F5A34,#1F5A34) 0 12px/100% 40px no-repeat, linear-gradient(#A79E95,#A79E95) 0 52px/44px 32px no-repeat, linear-gradient(#F0532E,#F0532E) 44px 52px/100% 32px no-repeat, #C9C23A"></div></div>
 
       <svg class="thread" id="thread" aria-hidden="true"><path id="threadPath"/></svg>
@@ -826,8 +828,8 @@ const fmt = n => (Math.round(n * 10) / 10).toString();
 
 /* ======================= 工作台布局与镜头 ======================= */
 const LAYOUT = {
-  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1150, 415] },
-  port: { w: 800, h: 1440, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [530, -10], loom: [110, 300], ruler: [165, 885], yarn: [30, 980], draft: [430, 990], coasterA: [610, 1310], coasterB: [50, 1295] }
+  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1150, 415], shuttle: [560, 230, 74], ball: [20, 620] },
+  port: { w: 800, h: 1440, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [530, -10], loom: [90, 300], ruler: [165, 885], yarn: [30, 980], draft: [430, 990], coasterA: [600, 1290], coasterB: [615, 730], shuttle: [585, 470, -72], ball: [90, 1265] }
 };
 const SIZE = { loom: [440, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
 const stage = $('#stage'), world = $('#world');
@@ -840,7 +842,9 @@ function layout() {
   const place = (el, p) => { el.style.left = p[0] + 'px'; el.style.top = p[1] + 'px'; };
   place($('#objLoom'), L.loom); place($('#objRuler'), L.ruler); place($('#objYarn'), L.yarn);
   place($('#objDraft'), L.draft); place($('#objLamp'), L.lamp); place($('#coasterA'), L.coasterA); place($('#coasterB'), L.coasterB);
-  $('#coasterA').style.transform = 'rotate(-9deg)'; $('#coasterB').style.transform = 'rotate(7deg)';
+  place($('#spareShuttle'), L.shuttle); place($('#looseBall'), L.ball);
+  $('#coasterA').style.transform = 'rotate(-9deg)'; $('#coasterB').style.transform = 'rotate(11deg)';
+  $('#spareShuttle').style.transform = `rotate(${L.shuttle[2]}deg)`; $('#looseBall').style.transform = 'rotate(-8deg)';
   $('#glow').style.left = (L.lamp[0] + 100) + 'px'; $('#glow').style.top = (L.lamp[1] + 130) + 'px';
   drawRoom();
   const th = $('#thread'); th.setAttribute('width', L.w); th.setAttribute('height', L.h); th.setAttribute('viewBox', `0 0 ${L.w} ${L.h}`);
@@ -862,7 +866,7 @@ function drawRoom() {
     <polygon class="r-cl" points="${table}"/>`;
 }
 function drawThread() {
-  const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 428, ey = L.loom[1] + 450;
+  const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 438, ey = L.loom[1] + 437;
   const port = L === LAYOUT.port;
   const d = port ? `M${sx} ${sy} C ${sx + 60} ${sy - 160}, ${ex + 110} ${ey + 140}, ${ex} ${ey}`
                  : `M${sx} ${sy} C ${sx - 150} ${sy + 60}, ${ex + 150} ${ey - 20}, ${ex} ${ey}`;
@@ -872,10 +876,11 @@ function drawThread() {
 function camera(name) {
   const W = stage.clientWidth, H = stage.clientHeight;
   let x, y, w, h, pad;
-  if (name === 'home') { x = 0; y = 0; w = L.w; h = L.h; pad = Math.min(W, H) < 500 ? 10 : 28; }
+  let foot = 0;
+  if (name === 'home') { x = 0; y = 0; w = L.w; h = L.h; pad = Math.min(W, H) < 500 ? 10 : 28; foot = 34; }
   else { const p = L[name], s = SIZE[name]; x = p[0]; y = p[1]; w = s[0]; h = s[1]; pad = -Math.min(w, h) * .12; }
-  const sc = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h);
-  const tx = W / 2 - (x + w / 2) * sc, ty = H / 2 - (y + h / 2) * sc;
+  const sc = Math.min((W - 2 * pad) / w, (H - foot - 2 * pad) / h);
+  const tx = W / 2 - (x + w / 2) * sc, ty = (H - foot) / 2 - (y + h / 2) * sc;
   world.style.transform = `translate(${tx}px, ${ty}px) scale(${sc})`;
 }
 
