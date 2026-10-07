@@ -30,8 +30,7 @@
   --lamp-2: #F7894A;
   --bulb: #F6E7C4;
   --glow: 0;
-  --journal: #F2EAD6;        /* 手帐纸 */
-  --journal-dot: rgba(120, 96, 60, .26);
+  --journal: #FCF9F2;        /* 棉纸 */
   --caveat: #FBE6D6;
   --scrim: rgba(237, 232, 220, .97);
   --shadow: rgba(84, 62, 30, .14);
@@ -52,7 +51,7 @@
     --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
     --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
     --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-    --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #3E382F; --journal-dot: rgba(236, 222, 190, .16); --shadow: rgba(0, 0, 0, .35);
+    --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #4A453C; --shadow: rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
@@ -61,7 +60,7 @@
   --paper: #2D2A26; --paper-2: #36322C; --well: #26231F; --ink: #F2EADA; --ink-fg: #24221F; --muted: #ABA291;
   --line: rgba(242, 234, 218, .14); --beech: #C9A773; --beech-2: #9C7A48; --wicker: #8A5A31; --wicker-2: #643F22;
   --now: #FF6FA8; --now-fg: #24221F; --lamp: #F0603A; --lamp-2: #FFA25C; --bulb: #FFE9B0; --glow: 1;
-  --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #3E382F; --journal-dot: rgba(236, 222, 190, .16); --shadow: rgba(0, 0, 0, .35);
+  --caveat: #43342A; --scrim: rgba(54, 52, 47, .97); --journal: #4A453C; --shadow: rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 
@@ -344,12 +343,12 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .drop { position: relative; display: grid; place-items: center; min-height: 260px; padding: 12px 0 48px; border-radius: 14px; transition: background-color .2s; }
 .drop.over { background: rgba(255,255,255,.3); }
 .journal { position: relative; background-color: var(--journal);
-  background-image:
-    radial-gradient(circle, var(--journal-dot) 1px, transparent 1.5px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75 .18' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .22  0 0 0 .38 -.14'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23f)'/%3E%3C/svg%3E");
-  background-size: 14px 14px, 180px 180px;
-  clip-path: polygon(0 1%, 7% 0, 15% .8%, 26% .2%, 38% 1%, 50% .3%, 63% .9%, 75% 0, 88% .7%, 100% .2%, 99.4% 12%, 100% 26%, 99.3% 41%, 100% 57%, 99.5% 72%, 100% 86%, 99.6% 100%, 86% 99.3%, 73% 100%, 60% 99.2%, 46% 100%, 33% 99.4%, 20% 100%, 8% 99.3%, 0 100%, .6% 85%, 0 70%, .7% 55%, 0 40%, .5% 25%, 0 12%);
+  /* 棉纸：只有很淡的纤维，没有格子；四边是细碎的手撕毛边 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='4' seed='8'/%3E%3CfeColorMatrix values='0 0 0 0 .5  0 0 0 0 .44  0 0 0 0 .34  0 0 0 .32 -.1'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  clip-path: polygon(0.0% 0.32%, 2.5% 1.51%, 5.0% 1.18%, 7.5% 0.04%, 10.0% 0.75%, 12.5% 1.18%, 15.0% 0.63%, 17.5% 0.58%, 20.0% 2.35%, 22.5% 0.48%, 25.0% 0.31%, 27.5% 0.18%, 30.0% 0.64%, 32.5% 0.64%, 35.0% 0.21%, 37.5% 0.43%, 40.0% 0.59%, 42.5% 0.30%, 45.0% 0.70%, 47.5% 0.57%, 50.0% 0.88%, 52.5% 0.29%, 55.0% 0.12%, 57.5% 0.76%, 60.0% 1.56%, 62.5% 0.76%, 65.0% 0.88%, 67.5% 0.70%, 70.0% 0.58%, 72.5% 0.84%, 75.0% 0.47%, 77.5% 0.06%, 80.0% 0.65%, 82.5% 0.82%, 85.0% 0.39%, 87.5% 0.02%, 90.0% 0.26%, 92.5% 1.16%, 95.0% 0.39%, 97.5% 0.08%, 100.0% 0.55%, 99.75% 3.3%, 99.68% 6.7%, 99.14% 10.0%, 99.84% 13.3%, 99.79% 16.7%, 99.47% 20.0%, 100.00% 23.3%, 99.67% 26.7%, 99.14% 30.0%, 99.54% 33.3%, 98.10% 36.7%, 99.30% 40.0%, 99.28% 43.3%, 98.73% 46.7%, 99.64% 50.0%, 99.85% 53.3%, 99.73% 56.7%, 99.91% 60.0%, 99.98% 63.3%, 99.08% 66.7%, 99.69% 70.0%, 99.89% 73.3%, 99.11% 76.7%, 99.42% 80.0%, 99.69% 83.3%, 99.25% 86.7%, 99.98% 90.0%, 98.74% 93.3%, 99.98% 96.7%, 99.12% 100.0%, 97.5% 99.63%, 95.0% 99.23%, 92.5% 99.22%, 90.0% 99.78%, 87.5% 99.02%, 85.0% 99.19%, 82.5% 99.26%, 80.0% 99.48%, 77.5% 99.52%, 75.0% 99.74%, 72.5% 99.04%, 70.0% 99.06%, 67.5% 99.04%, 65.0% 99.78%, 62.5% 99.80%, 60.0% 99.38%, 57.5% 99.16%, 55.0% 99.35%, 52.5% 99.92%, 50.0% 99.09%, 47.5% 99.25%, 45.0% 99.82%, 42.5% 99.67%, 40.0% 99.03%, 37.5% 99.60%, 35.0% 99.28%, 32.5% 99.87%, 30.0% 99.10%, 27.5% 99.85%, 25.0% 99.02%, 22.5% 99.65%, 20.0% 98.32%, 17.5% 99.35%, 15.0% 99.07%, 12.5% 99.13%, 10.0% 99.79%, 7.5% 99.71%, 5.0% 99.41%, 2.5% 98.12%, 0.0% 99.65%, 0.38% 96.7%, 0.45% 93.3%, 1.10% 90.0%, 1.32% 86.7%, 0.16% 83.3%, 0.65% 80.0%, 0.29% 76.7%, 0.50% 73.3%, 0.10% 70.0%, 0.22% 66.7%, 0.70% 63.3%, 0.51% 60.0%, 0.82% 56.7%, 0.55% 53.3%, 0.46% 50.0%, 0.41% 46.7%, 0.43% 43.3%, 0.63% 40.0%, 0.85% 36.7%, 0.50% 33.3%, 0.93% 30.0%, 0.74% 26.7%, 0.07% 23.3%, 0.71% 20.0%, 0.14% 16.7%, 1.87% 13.3%, 0.87% 10.0%, 0.86% 6.7%, 0.44% 3.3%);
   transition: background-color .6s; }
+.journal-wrap, .preview-box-wrap { filter: drop-shadow(0 1px 1.2px rgba(70, 52, 24, .22)) drop-shadow(0 4px 10px rgba(70, 52, 24, .08)); }
 .journal-wrap { position: relative; display: inline-block; max-width: 100%; transform: rotate(-2deg); }
 .journal-wrap::after { content: ""; position: absolute; left: 50%; top: -10px; width: 76px; height: 20px; margin-left: -38px; background: rgba(240, 70, 140, .45); transform: rotate(4deg); }
 .journal-photo { display: block; padding: 14px 14px 30px; }
