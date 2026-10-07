@@ -7,10 +7,10 @@
    镜头推近桌上的物件进入场景，返回时拉回同一张桌子。
    配色参考一套日历的纸品：米白纸、柠檬黄、天蓝、青绿、橙红；界面本身保持安静，颜色留给线和草稿；玫粉只标「当前」。 */
 :root {
-  --wall-a: #ECE8DE;        /* 左墙：米白纸 */
-  --wall-b: #2A9C7D;        /* 右墙：青绿 */
-  --cloth: #7DB8E8;         /* 桌面：一整块天蓝 */
-  --base: #F5F2EA;          /* 各个场景的米白底 */
+  --wall-a: #DCD5C5;        /* 左墙：米色纸 */
+  --wall-b: #1F7D65;        /* 右墙：青绿 */
+  --cloth: #4F8BC6;         /* 桌面：一整块蓝 */
+  --base: #EDE8DC;          /* 各个场景的米白底 */
   --lemon: #F1E46A;         /* 柠檬黄：选中的工具 */
   --desk: #F5F2EA;
   --paper: #FBF8F0;
@@ -31,7 +31,7 @@
   --bulb: #F6E7C4;
   --glow: 0;
   --caveat: #FBE6D6;
-  --scrim: rgba(245, 242, 234, .97);
+  --scrim: rgba(237, 232, 220, .97);
   --shadow: rgba(84, 62, 30, .14);
 
   --f-display: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -141,12 +141,12 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .ann .hand { margin-right: 2px; }
 .hand { display: inline-block; line-height: 0; color: var(--ink); }
 .hand svg { display: block; overflow: visible; }
-.ann em { font-family: var(--f-type); font-style: normal; font-size: 19px; color: var(--muted); }
+.ann em { font-family: var(--f-type); font-style: normal; font-size: 19px; color: var(--ink); opacity: .7; }
 .ann .lead { position: absolute; height: 0; border-top: 2px dashed var(--muted); transform-origin: 0 0; }
 .obj:hover .ann { transform: translateY(-4px) rotate(-2deg); }
 
-.loom { width: 620px; height: 560px; z-index: 2; }
-.loom canvas { position: absolute; left: 95px; top: 40px; width: 430px; height: 480px; }
+.loom { width: 440px; height: 560px; z-index: 2; }
+.loom canvas { position: absolute; left: 62px; top: 40px; width: 316px; height: 480px; }
 .loom .shuttle-obj { transition: transform .5s var(--ease-pop); transform-box: fill-box; transform-origin: center; }
 .loom:hover .shuttle-obj { transform: translateX(-16px) rotate(-2deg); }
 .ruler { width: 470px; height: 52px; z-index: 3; --rot: 1.5deg; }
@@ -166,7 +166,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .draft .photo { position: absolute; right: 0; bottom: 0; width: 126px; height: 150px; padding: 8px 8px 26px; background: #FFFFFF; transform: rotate(8deg); transition: transform .4s var(--ease-pop); }
 .draft .photo canvas { width: 100%; height: 100%; display: block; }
 .draft:hover .photo { transform: rotate(14deg) translate(8px, -8px); }
-.lamp { width: 200px; height: 270px; z-index: 1; }
+.lamp { width: 260px; height: 350px; z-index: 1; }
 .lamp .bulb { transition: fill .6s; }
 .lamp:hover .shade { transform: rotate(-4deg); }
 .lamp .shade { transition: transform .45s var(--ease-pop); transform-box: fill-box; transform-origin: 50% 100%; }
@@ -179,8 +179,8 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
 .thread { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; overflow: visible; transition: opacity var(--cam-ms); }
 .thread path { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke .5s; }
 
-.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--muted); white-space: nowrap; transition: opacity .3s; z-index: 5; }
-.stage.focused .hint-floor { opacity: 0; }
+.hint-floor { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-family: var(--f-type); font-size: var(--t-sm); color: var(--ink); opacity: .75; white-space: nowrap; transition: opacity .3s; z-index: 5; }
+.stage.focused .hint-floor { opacity: 0 !important; }
 
 /* ---------- 场景 ---------- */
 .scene { position: absolute; inset: 0; z-index: 10; overflow: auto; padding: 16px; padding-bottom: 32px; background: var(--scrim); opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .32s ease, transform .42s var(--ease-pop), visibility 0s .42s; }
@@ -407,24 +407,24 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
           <g class="shade"><path d="M10 112C2 64 46 22 104 24c58 2 92 40 86 84-2 14-34 20-90 20S14 126 10 112z" fill="var(--lamp)"/>
           <path d="M42 54c18-14 40-20 62-18" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="8" stroke-linecap="round"/></g>
         </svg>
-        <span class="ann" style="left:-260px;top:150px"><i>4</i><span class="hand" data-hand="台灯" style="--h:30px"></span><em>lamp.</em></span>
+        <span class="ann" style="left:46px;top:344px"><i>4</i><span class="hand" data-hand="台灯" style="--h:30px"></span><em>lamp.</em></span>
       </button>
 
       <button class="obj loom" id="objLoom" data-go="loom" aria-label="织布机：进入穿线试织">
-        <svg class="art crayon" viewBox="0 0 620 560" aria-hidden="true">
-          <rect x="24" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
-          <rect x="554" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
-          <rect x="0" y="36" width="620" height="44" rx="12" fill="var(--beech)"/>
-          <path d="M30 50c90 5 170-4 270 2s210 4 290-2M40 64c120-3 240 4 360 0s150-2 190 1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M38 90c2 120-2 260 1 420M576 90c-2 140 2 280-1 420" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
-          <rect x="0" y="480" width="620" height="46" rx="12" fill="var(--beech)"/>
-          <path d="M40 498c120 5 260-5 380 0s120 2 160 0M30 512c140-4 300 4 560-1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/>
-          <g fill="var(--beech-2)"><circle cx="45" cy="58" r="7"/><circle cx="575" cy="58" r="7"/><circle cx="45" cy="503" r="7"/><circle cx="575" cy="503" r="7"/></g>
+        <svg class="art crayon" viewBox="0 0 440 560" aria-hidden="true">
+          <rect x="16" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
+          <rect x="382" y="16" width="42" height="528" rx="10" fill="var(--beech)"/>
+          <rect x="0" y="36" width="440" height="44" rx="12" fill="var(--beech)"/>
+          <path d="M24 50c70 5 120-4 200 2s150 4 196-2M34 64c90-3 170 4 260 0s100-2 120 1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M30 90c2 120-2 260 1 420M404 90c-2 140 2 280-1 420" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+          <rect x="0" y="480" width="440" height="46" rx="12" fill="var(--beech)"/>
+          <path d="M30 498c90 5 180-5 270 0s90 2 110 0M24 512c100-4 220 4 392-1" fill="none" stroke="var(--beech-2)" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+          <g fill="var(--beech-2)"><circle cx="37" cy="58" r="7"/><circle cx="403" cy="58" r="7"/><circle cx="37" cy="503" r="7"/><circle cx="403" cy="503" r="7"/></g>
         </svg>
         <canvas id="loomCanvas" class="crayon" aria-hidden="true"></canvas>
-        <svg class="art crayon" viewBox="0 0 620 560" aria-hidden="true" style="pointer-events:none">
-                    <g class="shuttle-obj">
-            <path d="M360 452c40-16 190-20 236-4-44 18-196 20-236 4z" fill="var(--beech-2)"/>
-            <path d="M420 447h120" stroke="var(--wicker-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+        <svg class="art crayon" viewBox="0 0 440 560" aria-hidden="true" style="pointer-events:none">
+          <g class="shuttle-obj">
+            <path d="M236 452c34-15 158-18 196-4-37 17-163 19-196 4z" fill="var(--beech-2)"/>
+            <path d="M286 447h100" stroke="var(--wicker-2)" stroke-width="4" stroke-linecap="round" opacity=".6"/>
           </g>
         </svg>
         <span class="ann" style="left:-6px;top:-44px"><i>1</i><span class="hand" data-hand="织布机" style="--h:34px"></span><em>loom.</em></span>
@@ -471,7 +471,7 @@ input[type="range"] { accent-color: var(--ink); width: 100%; }
       <button class="obj draft" id="objDraft" data-go="draft" aria-label="草稿：进入图片转换与草稿文件">
         <div class="sheet-paper"><div class="paper-bg crayon"></div><canvas class="grid-thumb crayon" id="draftThumb"></canvas><div class="lines"><b id="thumbSize">24×32</b>示例<br>草稿<br><br>no.01</div></div>
         <div class="photo crayon"><canvas id="photoThumb" width="220" height="250"></canvas></div>
-        <span class="ann" style="left:236px;top:-26px"><i>3</i><span class="hand" data-hand="草稿" style="--h:34px"></span><em>draft.</em></span>
+        <span class="ann" style="left:140px;top:-30px"><i>3</i><span class="hand" data-hand="草稿" style="--h:34px"></span><em>draft.</em></span>
       </button>
     </div>
 
@@ -789,7 +789,7 @@ function drawBeam(ctx, x0, cs, xL, xR, y, h) {
 }
 function drawLoomObj() {
   const cv = $('#loomCanvas'), k = Math.min(3, (devicePixelRatio || 1) * 2);
-  const W = 430, H = 480; cv.width = W * k; cv.height = H * k;
+  const W = 316, H = 480; cv.width = W * k; cv.height = H * k;
   const ctx = cv.getContext('2d'); ctx.scale(k, k); ctx.clearRect(0, 0, W, H);
   const topY = 18, botY = 463;                       // 上下两根梁的中线（对应织布机图里的梁）
   const cs = Math.min((W - 10) / S.cols, (botY - topY - 70) / S.rows);
@@ -826,10 +826,10 @@ const fmt = n => (Math.round(n * 10) / 10).toString();
 
 /* ======================= 工作台布局与镜头 ======================= */
 const LAYOUT = {
-  land: { w: 1240, h: 880, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1020, 0], loom: [40, 170], ruler: [90, 752], yarn: [720, 250], draft: [870, 500], coasterA: [700, 660], coasterB: [1090, 300] },
-  port: { w: 800, h: 1460, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [610, 0], loom: [90, 270], ruler: [165, 855], yarn: [30, 940], draft: [430, 950], coasterA: [610, 1270], coasterB: [50, 1255] }
+  land: { w: 1280, h: 900, room: { cx: 905, cy: 110, ly: 300, k: .52 }, lamp: [1000, -10], loom: [120, 180], ruler: [105, 770], yarn: [640, 300], draft: [880, 540], coasterA: [650, 705], coasterB: [1150, 415] },
+  port: { w: 800, h: 1440, room: { cx: 575, cy: 150, ly: 280, k: .6 }, lamp: [530, -10], loom: [110, 300], ruler: [165, 885], yarn: [30, 980], draft: [430, 990], coasterA: [610, 1310], coasterB: [50, 1295] }
 };
-const SIZE = { loom: [620, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
+const SIZE = { loom: [440, 560], ruler: [470, 52], yarn: [370, 280], draft: [340, 330] };
 const stage = $('#stage'), world = $('#world');
 let L = LAYOUT.land, view = 'home';
 
@@ -862,7 +862,7 @@ function drawRoom() {
     <polygon class="r-cl" points="${table}"/>`;
 }
 function drawThread() {
-  const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 592, ey = L.loom[1] + 450;
+  const sx = L.yarn[0] + 98, sy = L.yarn[1] + 108, ex = L.loom[0] + 428, ey = L.loom[1] + 450;
   const port = L === LAYOUT.port;
   const d = port ? `M${sx} ${sy} C ${sx + 60} ${sy - 160}, ${ex + 110} ${ey + 140}, ${ex} ${ey}`
                  : `M${sx} ${sy} C ${sx - 150} ${sy + 60}, ${ex + 150} ${ey - 20}, ${ex} ${ey}`;
